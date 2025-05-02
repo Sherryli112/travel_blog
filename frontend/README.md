@@ -1,36 +1,60 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# frontend - Next.js 前端專案
 
-## Getting Started
+本資料夾為 blog 專案的前端應用，使用 [Next.js](https://nextjs.org/) 建構，負責文章與留言的顯示與互動。
 
-First, run the development server:
+---
+
+## 使用技術
+
+- **React 框架**：Next.js 13+
+- **CSS 工具**：Tailwind CSS
+- **API 串接**：使用 fetch 連接後端 Koa REST API
+- **狀態管理**：使用 React 狀態與 useEffect 控制流程
+
+---
+
+## 啟動方式
+
+### 1. 安裝依賴
+
+```bash
+npm install
+```
+
+### 2. 啟動開發伺服器
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+開啟瀏覽器並前往 `http://localhost:3000` 查看畫面。
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 預期頁面與功能
 
-## Learn More
+| 頁面             | 路徑            | 功能描述                         |
+|------------------|-----------------|----------------------------------|
+| 首頁             | `/`             | 顯示文章列表（摘要）             |
+| 文章詳情         | `/post/[id]`    | 顯示文章內容與留言列表           |
+| 新增文章         | `/post/new`     | 建立新文章表單                   |
+| 編輯文章         | `/post/edit/[id]` | 編輯既有文章                     |
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 可用指令
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+| 指令           | 說明                     |
+|----------------|--------------------------|
+| `npm run dev`  | 啟動開發模式伺服器       |
+| `npm run build`| 編譯生產環境版本         |
+| `npm run start`| 啟動 Next.js 生產環境伺服器（需先 build） |
+| `npm run lint` | 執行 ESLint 代碼檢查     |
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 備註
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- 本前端專案會透過環境變數（例如 `NEXT_PUBLIC_API_BASE_URL`）與後端串接
+- Tailwind CSS 已於專案初始化階段設定完成
+- 請確保後端 API 啟動於可供前端存取的端口（例如 `http://localhost:3001`）
