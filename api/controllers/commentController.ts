@@ -1,5 +1,5 @@
 import { Context } from 'koa';
-import prisma from '../prisma';
+import prisma from '../utils/prisma';
 
 // 刪除留言（可加驗證）
 export async function deleteComment(ctx: Context) {

@@ -1,4 +1,4 @@
-# blog project 
+# Blog Project 
 一個簡易的部落格系統，具備文章與留言功能，使用 RESTful API 架構設計，資料儲存於 PostgreSQL 資料庫
 
 ---
@@ -40,6 +40,23 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+//作者模型
+model Author {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique //作者名稱，設為唯一以便識別
+  posts     Post[] //一個作者可以有多篇文章
+  createdAt DateTime @default(now())
+}
+
+//評論者模型
+model Commenter {
+  id        Int       @id @default(autoincrement())
+  name      String    @unique //評論者名稱，設為唯一以便識別
+  comments  Comment[] //一個評論者可以有多個評論
+  createdAt DateTime  @default(now())
+}
+
+//文章主題：美食、住宿、景點、其他
 enum Topic {
   FOOD
   STAY
@@ -47,26 +64,34 @@ enum Topic {
   OTHERS
 }
 
+//文章模型
 model Post {
-  id         Int       @id @default(autoincrement())
-  title      String
-  content    String    @db.Text
-  topic      Topic     @default(OTHERS)
-  authorName String
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
-  comments   Comment[]
+  id        Int       @id @default(autoincrement())
+  title     String
+  content   String    @db.Text
+  topic     Topic     @default(OTHERS)
+  author    Author    @relation(fields: [authorId], references: [id]) //關聯作者
+  authorId  Int
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  comments  Comment[] //與評論的一對多關聯
+
   @@index([topic])
+  @@index([authorId])
 }
 
+//評論模型
 model Comment {
-  id        Int      @id @default(autoincrement())
-  content   String   @db.Text
-  userName  String
-  createdAt DateTime @default(now())
-  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
-  postId    Int
+  id          Int       @id @default(autoincrement())
+  content     String    @db.Text
+  commenter   Commenter @relation(fields: [commenterId], references: [id]) //關聯評論者
+  commenterId Int
+  createdAt   DateTime  @default(now())
+  post        Post      @relation(fields: [postId], references: [id], onDelete: Cascade) //關聯文章
+  postId      Int
+
   @@index([postId])
+  @@index([commenterId])
 }
 ```
 
