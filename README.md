@@ -1,5 +1,5 @@
 # Blog Project 
-一個簡易的部落格系統，具備文章與留言功能，使用 RESTful API 架構設計，資料儲存於 PostgreSQL 資料庫
+一個簡易的旅遊部落格系統，具備文章與留言功能，使用 RESTful API 架構設計，資料儲存於 PostgreSQL 資料庫
 
 ---
 
@@ -17,12 +17,13 @@
 ## 專案結構
 ```
 blog-project/
+├── api/                  # 後端 api (Koa.js)
 ├── frontend/             # 前端專案 (Next.js)
-├── prisma/               # Prisma schema 與 migration 設定
-├── generated/            # Prisma Client 輸出（透過 generate 指令）
-├── docker-compose.yml    # 資料庫容器設定
-├── .env                  # 環境變數設定（未加入 Git）
-├── README.md             # 本說明文件
+├── prisma/               # Prisma 設定（包含 schema 與 migration）
+├── generated/            # Prisma Client 輸出（由 prisma generate 產生）
+├── docker-compose.yml    # PostgreSQL 資料庫設定（透過 Docker 啟動）
+├── .env                  # 環境變數設定（不納入版控）
+├── README.md             # 專案說明文件
 ```
 
 ---
