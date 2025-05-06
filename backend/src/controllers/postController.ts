@@ -1,5 +1,6 @@
 import { Context } from 'koa';
 import prisma from '../utils/prisma';
+import { Topic } from '../../generated/prisma';
 
 // 取得文章列表
 export async function getPosts(ctx: Context) {
@@ -38,7 +39,7 @@ export async function getPostById(ctx: Context) {
 type CreatePostBody = {
   title: string;
   content: string;
-  topic: string;
+  topic: Topic;
   authorName: string;
 };
 
@@ -60,7 +61,7 @@ export async function createPost(ctx: Context) {
 type UpdatePostBody = {
   title?: string;
   content?: string;
-  topic?: string;
+  topic?: Topic;
 };
 
 // 編輯文章

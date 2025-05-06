@@ -17,13 +17,22 @@
 ## 專案結構
 ```
 blog-project/
-├── api/                  # 後端 api (Koa.js)
-├── frontend/             # 前端專案 (Next.js)
-├── prisma/               # Prisma 設定（包含 schema 與 migration）
-├── generated/            # Prisma Client 輸出（由 prisma generate 產生）
-├── docker-compose.yml    # PostgreSQL 資料庫設定（透過 Docker 啟動）
-├── .env                  # 環境變數設定（不納入版控）
-├── README.md             # 專案說明文件
+├── backend/           # 後端專案(Koa.js + Prisma)
+│   ├── src/
+│   │   ├── controllers/
+│   │   ├── routes/
+│   │   ├── utils/
+│   │   └── index.ts
+│   ├── prisma/        # Prisma schema + migrations
+│   ├── generated/     # Prisma client
+│   ├── package.json
+│   └── tsconfig.json
+├── frontend/          # 前端專案 (Next.js)
+│   ├── src/
+│   ├── public/
+│   ├── package.json
+│   └── tsconfig.json
+└── docker-compose.yml # Docker 配置 (PostgreSQL 資料庫容器)
 ```
 
 ---
@@ -136,14 +145,13 @@ npx prisma migrate dev --name init
 ### 啟動前端（Next.js）
 
 ```bash
-cd frontend
-npm install
 npm run dev
 ```
 
 ### Prisma Studio（可視化操作資料庫）
 
 ```bash
+cd backend
 npx prisma studio
 ```
 
