@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
@@ -17,8 +17,6 @@ type FormData = {
   author: string;
   title: string;
   content: string;
-  images: string[];
-  coverImageIndex: number | null;
 };
 
 // Quill 編輯器的工具欄配置
@@ -28,9 +26,7 @@ const modules = {
     ['bold', 'italic', 'underline', 'strike'],
     [{ 'color': [] }, { 'background': [] }],
     [{ 'align': [] }],
-    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-    // ['link', 'image'],
-    // ['clean']
+    [{ 'list': 'ordered' }, { 'list': 'bullet' }],
   ],
 };
 
@@ -50,12 +46,8 @@ export default function NewPost() {
     author: '',
     title: '',
     content: '',
-    images: [],
-    coverImageIndex: null,
   });
   const [errors, setErrors] = useState<Partial<FormData>>({});
-  const [currentSlide, setCurrentSlide] = useState(0);
-  const [useCoverImage, setUseCoverImage] = useState(false);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -83,61 +75,10 @@ export default function NewPost() {
         content: undefined
       }));
     }
-    // 解析內容中的所有 <img> 標籤 src
-    const imgSrcs = Array.from(
-      content.matchAll(/<img[^>]*src=["']([^"']+)["'][^>]*>/g)
-    ).map(match => match[1]);
-    setFormData(prev => ({
-      ...prev,
-      images: imgSrcs
-    }));
-    // 若目前封面圖已不存在於新圖片清單，則取消封面圖
-    if (
-      formData.coverImageIndex !== null &&
-      (imgSrcs.length === 0 || formData.coverImageIndex >= imgSrcs.length)
-    ) {
-      setFormData(prev => ({
-        ...prev,
-        coverImageIndex: null
-      }));
-      setUseCoverImage(false);
-    }
-    // 若有圖片且尚未選封面，預設第一張
-    if (imgSrcs.length > 0 && formData.coverImageIndex === null && useCoverImage) {
-      setFormData(prev => ({
-        ...prev,
-        coverImageIndex: 0
-      }));
-    }
+
   };
 
-  // 處理封面圖片選擇
-  const handleCoverImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const checked = e.target.checked;
-    setUseCoverImage(checked);
-    if (checked) {
-      setFormData(prev => ({
-        ...prev,
-        coverImageIndex: currentSlide
-      }));
-    } else {
-      setFormData(prev => ({
-        ...prev,
-        coverImageIndex: null
-      }));
-    }
-  };
 
-  // 處理輪播器切換
-  const handleSlideChange = (index: number) => {
-    setCurrentSlide(index);
-    if (useCoverImage) {
-      setFormData(prev => ({
-        ...prev,
-        coverImageIndex: index
-      }));
-    }
-  };
 
   const validateForm = () => {
     const newErrors: Partial<FormData> = {};
@@ -154,7 +95,7 @@ export default function NewPost() {
     } else if (formData.title.length < 5) {
       newErrors.title = '標題至少需要5個字';
     }
-    
+
     const contentText = stripHtml(formData.content);
     if (!contentText) {
       newErrors.content = '請輸入文章內容';
@@ -168,7 +109,7 @@ export default function NewPost() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
@@ -190,7 +131,7 @@ export default function NewPost() {
         authorName: formData.author,
       };
 
-      const response = await fetch('http://localhost:3001/api/posts', {
+      const response = await fetch('http://localhost:3001/posts', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -205,7 +146,7 @@ export default function NewPost() {
 
       const result = await response.json();
       console.log('文章發布成功：', result);
-      
+
       // 發布成功後跳轉到首頁
       router.push('/');
       router.refresh();
@@ -216,25 +157,12 @@ export default function NewPost() {
   };
 
   return (
-    <main className="min-h-screen bg-gray-50">
-      {/* 導航欄 */}
-      <nav className="bg-white shadow-sm sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16 items-center">
-            <div className="flex-shrink-0">
-              <Link href="/" className="text-2xl font-bold text-gray-900">
-                旅遊部落格
-              </Link>
-            </div>
-          </div>
-        </div>
-      </nav>
-
+    <>
       {/* 表單內容 */}
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="bg-white rounded-lg shadow-md p-6">
           <h1 className="text-2xl font-bold text-gray-900 mb-6">新增文章</h1>
-          
+
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* 文章主題 */}
             <div>
@@ -246,9 +174,8 @@ export default function NewPost() {
                 name="category"
                 value={formData.category}
                 onChange={handleInputChange}
-                className={`w-full px-3 py-2 border rounded-md ${
-                  errors.category ? 'border-red-500' : 'border-gray-300'
-                }`}
+                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.category ? 'border-red-500' : 'border-gray-300'
+                  }`}
               >
                 <option value="">請選擇主題</option>
                 <option value="美食">美食</option>
@@ -272,9 +199,8 @@ export default function NewPost() {
                 name="author"
                 value={formData.author}
                 onChange={handleInputChange}
-                className={`w-full px-3 py-2 border rounded-md ${
-                  errors.author ? 'border-red-500' : 'border-gray-300'
-                }`}
+                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.author ? 'border-red-500' : 'border-gray-300'
+                  }`}
               />
               {errors.author && (
                 <p className="mt-1 text-sm text-red-500">{errors.author}</p>
@@ -292,9 +218,8 @@ export default function NewPost() {
                 name="title"
                 value={formData.title}
                 onChange={handleInputChange}
-                className={`w-full px-3 py-2 border rounded-md ${
-                  errors.title ? 'border-red-500' : 'border-gray-300'
-                }`}
+                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.title ? 'border-red-500' : 'border-gray-300'
+                  }`}
               />
               {errors.title && (
                 <p className="mt-1 text-sm text-red-500">{errors.title}</p>
@@ -321,74 +246,8 @@ export default function NewPost() {
               )}
             </div>
 
-            {/* 圖片輪播器 */}
-            {formData.images.length > 0 && (
-              <div className="flex flex-col items-center mb-4">
-                {/* 封面勾選框 */}
-                <div className="flex items-center mb-2 w-full">
-                  <input
-                    type="checkbox"
-                    id="useCoverImage"
-                    checked={useCoverImage}
-                    onChange={handleCoverImageChange}
-                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 mr-2"
-                  />
-                  <label htmlFor="useCoverImage" className="text-sm font-medium text-gray-700 select-none">
-                    是否選擇文章縮圖
-                  </label>
-                </div>
-                {/* 輪播主體 */}
-                <div className="relative w-full max-w-2xl aspect-video bg-white rounded-xl shadow-lg flex items-center justify-center">
-                  {/* 左箭頭 */}
-                  <button
-                    type="button"
-                    onClick={() => handleSlideChange((currentSlide - 1 + formData.images.length) % formData.images.length)}
-                    className="absolute left-0 top-1/2 -translate-y-1/2 z-10 p-4 group"
-                    style={{ minWidth: 48 }}
-                  >
-                    <span className="text-4xl text-blue-500 group-hover:text-blue-700 select-none">&#60;</span>
-                  </button>
-                  {/* 圖片 */}
-                  <div className="w-full h-full flex items-center justify-center">
-                    <img
-                      src={formData.images[currentSlide]}
-                      alt={`上傳圖片 ${currentSlide + 1}`}
-                      className="object-contain max-h-full max-w-full rounded-lg"
-                    />
-                    {useCoverImage && formData.coverImageIndex === currentSlide && (
-                      <div className="absolute top-4 right-4 bg-blue-500 text-white px-3 py-1 rounded-full text-sm shadow">
-                        文章縮圖
-                      </div>
-                    )}
-                  </div>
-                  {/* 右箭頭 */}
-                  <button
-                    type="button"
-                    onClick={() => handleSlideChange((currentSlide + 1) % formData.images.length)}
-                    className="absolute right-0 top-1/2 -translate-y-1/2 z-10 p-4 group"
-                    style={{ minWidth: 48 }}
-                  >
-                    <span className="text-4xl text-blue-500 group-hover:text-blue-700 select-none">&#62;</span>
-                  </button>
-                  {/* 導覽點 */}
-                  <div className="absolute bottom-3 left-0 right-0 flex justify-center space-x-2">
-                    {formData.images.map((_, idx) => (
-                      <button
-                        key={idx}
-                        type="button"
-                        onClick={() => handleSlideChange(idx)}
-                        className={`w-3 h-3 rounded-full border-2 ${
-                          idx === currentSlide ? 'bg-blue-500 border-blue-500' : 'bg-white border-blue-300'
-                        }`}
-                        aria-label={`切換到第${idx + 1}張圖片`}
-                      />
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
 
-            
+
 
             {/* 提交按鈕 */}
             <div className="flex justify-end space-x-4">
@@ -408,6 +267,6 @@ export default function NewPost() {
           </form>
         </div>
       </div>
-    </main>
+    </>
   );
 } 

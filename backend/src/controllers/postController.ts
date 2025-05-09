@@ -14,7 +14,7 @@ export async function getPosts(ctx: Context) {
   const posts = await prisma.post.findMany({
     where,  //條件過濾
     skip: Number(skip),  //跳過前幾筆(用於分頁)
-    take: 10,  //取出幾筆資料
+    // take: 10,  //取出幾筆資料
     include: { author: true, comments: true },  //包含作者與留言
     orderBy: { createdAt: 'desc' },  //時間排序由新到舊
   });

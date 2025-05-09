@@ -1,7 +1,7 @@
 import Router from 'koa-router';
 import { getPosts, getPostById, createPost, updatePost, deletePost, getCommentsByPost, addCommentToPost } from '../controllers/postController';
 
-const router = new Router({ prefix: '/api' });
+const router = new Router();
 
 // 文章相關路由
 router.get('/posts', getPosts);
