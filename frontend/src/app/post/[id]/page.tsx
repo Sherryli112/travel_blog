@@ -53,92 +53,37 @@ const getCategoryLabel = (value: Post['topic']) => {
 };
 
 //時間格式調整
-const formatDate = (isoString: string): string => {
-  const date = new Date(isoString);
-  const year = date.getFullYear();
-  const month = `${date.getMonth() + 1}`.padStart(2, '0');
-  const day = `${date.getDate()}`.padStart(2, '0');
-  return `${year}-${month}-${day}`;
-};
-
-// 模擬文章數據庫
-// const posts = [
-//   {
-//     id: 1,
-//     title: '美食文章1',
-//     content: `這是我的第一篇美食文章的詳細內容。在這裡，我將分享我在台北發現的一家隱藏版美食餐廳。
-
-// 這家餐廳位於台北市信義區的一條小巷中，雖然位置不太起眼，但卻是我近期發現的最棒的餐廳之一。
-
-// 餐廳的招牌菜是他們的招牌牛肉麵，湯頭濃郁，牛肉軟嫩，麵條彈牙。除此之外，他們的小菜也相當出色，特別是滷味拼盤，每一樣都滷得恰到好處。
-
-// 價格方面，雖然不是最便宜的選擇，但考慮到食材的品質和料理的水準，絕對是物超所值。`,
-//     updatedAt: '2024-03-20',
-//     author: '作者名稱',
-//     topic: '美食'
-//   },
-//   {
-//     id: 2,
-//     title: '住宿文章1',
-//     content: '這是住宿文章的詳細內容...',
-//     updatedAt: '2024-03-19',
-//     author: '作者名稱',
-//     topic: '住宿'
-//   }
-// ];
-
-// 模擬留言數據
-// const initialComments: Comment[] = [
-//   {
-//     id: 1,
-//     author: '訪客1',
-//     content: '這家餐廳我也去過，真的很棒！',
-//     date: '2024-03-20 14:30'
-//   },
-//   {
-//     id: 2,
-//     author: '訪客2',
-//     content: '請問這家餐廳的營業時間是？',
-//     date: '2024-03-20 15:45'
-//   },
-//   {
-//     id: 3,
-//     author: '訪客3',
-//     content: '看起來好好吃，下次一定要去試試！',
-//     date: '2024-03-20 16:20'
-//   },
-//   {
-//     id: 4,
-//     author: '訪客4',
-//     content: '他們的牛肉麵真的是一絕，湯頭很濃郁。',
-//     date: '2024-03-20 17:15'
-//   },
-//   {
-//     id: 5,
-//     author: '訪客5',
-//     content: '感謝分享，這週末就去試試看！',
-//     date: '2024-03-20 18:00'
-//   }
-// ];
+// const formatDate = (isoString: string): string => {
+//   const date = new Date(isoString);
+//   const year = date.getFullYear();
+//   const month = `${date.getMonth() + 1}`.padStart(2, '0');
+//   const day = `${date.getDate()}`.padStart(2, '0');
+//   return `${year}-${month}-${day}`;
+// };
+const formatDate = (isoString: string): string => dayjs(isoString).format('YYYY-MM-DD');
 
 export default function PostDetail() {
   const params = useParams();
   const postId = Number(params.id);
   const [post, setPost] = useState<Post | null>(null);
   const [loading, setLoading] = useState(true);
-  // const [post, setPost] = useState(posts.find(p => p.id === postId));
+  const [deleteSuccessMessage, setDeleteSuccessMessage] = useState('');
   const [comments, setComments] = useState<Comment[]>([]);
+  // const [commentError, setCommentError] = useState('');
+  const [commentErrors, setCommentErrors] = useState<{ author?: string; content?: string }>({});
   const [newComment, setNewComment] = useState('');
   const [newCommentAuthor, setNewCommentAuthor] = useState('');
   const [showAllComments, setShowAllComments] = useState(false);
   const [deleteTargetId, setDeleteTargetId] = useState<number | null>(null);
   const [deleteInput, setDeleteInput] = useState('');
   const [deleteError, setDeleteError] = useState('');
+  const [authorError, setAuthorError] = useState('');
+  const [contentError, setContentError] = useState('');
 
   //獲取留言
   const fetchComments = async () => {
     try {
-      const res = await fetch(`http://localhost:3001/posts/${postId}/comments`);
+      const res = await fetch(`http://localhost:3001/api/posts/${postId}/comments`);
       if (!res.ok) throw new Error('無法取得留言');
       const data = await res.json();
       setComments(data);
@@ -150,7 +95,7 @@ export default function PostDetail() {
   useEffect(() => {
     const fetchPost = async () => {
       try {
-        const res = await fetch(`http://localhost:3001/posts/${postId}`);
+        const res = await fetch(`http://localhost:3001/api/posts/${postId}`);
         if (!res.ok) throw new Error('找不到文章');
         const data = await res.json();
         setPost(data);
@@ -167,7 +112,6 @@ export default function PostDetail() {
       fetchComments();
     }
 
-    if (!isNaN(postId)) fetchPost();
   }, [postId]);
 
   if (loading) {
@@ -204,13 +148,41 @@ export default function PostDetail() {
   // 顯示留言（預設3則，展開全部）
   const visibleComments = showAllComments ? sortedComments : sortedComments.slice(0, 3);
 
+  // 驗證留言表單
+  const validateCommentForm = () => {
+    const trimmedAuthor = newCommentAuthor.trim();
+    const trimmedContent = newComment.trim();
+
+    let isValid = true;
+    setAuthorError('');
+    setContentError('');
+
+    if (!trimmedAuthor) {
+      setAuthorError('請輸入留言者名稱');
+      isValid = false;
+    } else if (trimmedAuthor.length < 2) {
+      setAuthorError('留言者名稱至少需 2 個字');
+      isValid = false;
+    }
+
+    if (!trimmedContent) {
+      setContentError('請輸入留言內容');
+      isValid = false;
+    } else if (trimmedContent.length < 5) {
+      setContentError('留言內容至少需 5 個字');
+      isValid = false;
+    }
+
+    return isValid;
+  };
+
 
   // 新增留言
   const handleSubmitComment = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newComment.trim() || !newCommentAuthor.trim()) return;
+    if (!validateCommentForm()) return;
     try {
-      const res = await fetch(`http://localhost:3001/posts/${postId}/comments`, {
+      const res = await fetch(`http://localhost:3001/api/posts/${postId}/comments`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -224,12 +196,13 @@ export default function PostDetail() {
         throw new Error(errorData.error || '留言失敗');
       }
       await fetchComments();
-
       setNewComment('');
       setNewCommentAuthor('');
+      // setCommentError('');
+      setCommentErrors({});
     } catch (err: any) {
       console.error('留言失敗：', err.message);
-      alert('留言送出失敗，請稍後再試');
+      setContentError(err.message || '留言送出失敗，請稍後再試');
     }
   };
 
@@ -238,28 +211,48 @@ export default function PostDetail() {
 
 
   // 刪除留言驗證
-  // const handleDeleteComment = (id: number) => {
-  //   setDeleteTargetId(id);
-  //   setDeleteInput('');
-  //   setDeleteError('');
-  // };
-  // const confirmDelete = () => {
-  //   const target = comments.find(c => c.id === deleteTargetId);
-  //   if (!target) return;
-  //   if (deleteInput.trim() !== target.author) {
-  //     setDeleteError('名稱不正確，無法刪除留言');
-  //     return;
-  //   }
-  //   setComments(comments.filter(c => c.id !== deleteTargetId));
-  //   setDeleteTargetId(null);
-  //   setDeleteInput('');
-  //   setDeleteError('');
-  // };
-  // const cancelDelete = () => {
-  //   setDeleteTargetId(null);
-  //   setDeleteInput('');
-  //   setDeleteError('');
-  // };
+  const handleDeleteComment = (id: number) => {
+    setDeleteTargetId(id);
+    setDeleteInput('');
+    setDeleteError('');
+  };
+
+  const confirmDelete = async () => {
+    const target = comments.find(c => c.id === deleteTargetId);
+    if (!target) return;
+
+    if (deleteInput.trim().toLowerCase() !== target.commenter.name.trim().toLowerCase()) {
+      setDeleteError('名稱不正確，無法刪除留言');
+      return;
+    }
+
+    try {
+      const res = await fetch(`http://localhost:3001/api/comments/${deleteTargetId}?commenterName=${encodeURIComponent(deleteInput.trim())}`, {
+        method: 'DELETE',
+      });
+
+      if (!res.ok) {
+        throw new Error('刪除失敗');
+      }
+
+      await fetchComments(); // 重新取得留言
+      setDeleteTargetId(null);
+      setDeleteInput('');
+      setDeleteError('');
+      setDeleteSuccessMessage('留言已成功刪除');
+
+      setTimeout(() => setDeleteSuccessMessage(''), 3000);
+    } catch (error) {
+      console.error('刪除留言失敗：', error);
+      setDeleteError('刪除留言失敗，請稍後再試');
+    }
+  };
+
+  const cancelDelete = () => {
+    setDeleteTargetId(null);
+    setDeleteInput('');
+    setDeleteError('');
+  };
 
   return (
     <>
@@ -285,31 +278,40 @@ export default function PostDetail() {
         <h2 className="text-2xl font-bold text-gray-900 p-6">留言區</h2>
         {/* 留言輸入框 */}
         <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-          <div className="flex flex-col sm:flex-row gap-2 mb-2">
-            <input
-              type="text"
-              placeholder="留言者名稱 (必填)"
-              value={newCommentAuthor}
-              onChange={e => setNewCommentAuthor(e.target.value)}
-              className="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          <form onSubmit={handleSubmitComment}>
+            <div className="flex flex-col sm:flex-row gap-2 mb-2">
+              <input
+                type="text"
+                placeholder="留言者名稱 (必填)"
+                value={newCommentAuthor}
+                onChange={e => setNewCommentAuthor(e.target.value)}
+                className={`flex-1 px-4 py-2 border rounded-md focus:outline-none focus:ring-2 ${authorError ? 'border-red-500 focus:ring-red-500 focus:ring-1' : 'border-gray-300 focus:ring-blue-500'}`}
+              /> 
+            </div>
+            {authorError && <div className="text-red-500 text-sm mt-1 mb-2">{authorError}</div>}
+            <textarea
+              value={newComment}
+              onChange={(e) => setNewComment(e.target.value)}
+              placeholder="請輸入您的留言..."
+              className={`w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 mb-1 ${contentError ? 'border-red-500 focus:ring-red-500 focus:ring-1' : 'border-gray-300 focus:ring-blue-500'}`}
+              rows={4}
             />
-          </div>
-          <textarea
-            value={newComment}
-            onChange={(e) => setNewComment(e.target.value)}
-            placeholder="請輸入您的留言..."
-            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4"
-            rows={4}
-          />
-          <button
-            onClick={handleSubmitComment}
-            className="bg-blue-500 text-white px-6 py-2 rounded-md hover:bg-blue-600 cursor-pointer"
-            disabled={!newComment.trim() || !newCommentAuthor.trim()}
-          >
-            送出留言
-          </button>
+            {contentError && <div className="text-red-500 text-sm mb-2">{contentError}</div>}
+
+            <button
+              type="submit"
+              className="bg-blue-500 text-white px-6 py-2 rounded-md hover:bg-blue-600 cursor-pointer"
+            >
+              送出留言
+            </button>
+          </form>
         </div>
         {/* 留言列表 */}
+        {deleteSuccessMessage && (
+          <div className="text-green-600 bg-green-100 border border-green-300 px-4 py-2 rounded mb-4">
+            {deleteSuccessMessage}
+          </div>
+        )}
         <div className="space-y-4">
           {visibleComments.map((comment) => (
             <div key={comment.id} className="bg-white rounded-lg shadow-md p-6 relative">
@@ -317,15 +319,17 @@ export default function PostDetail() {
                 <span className="font-semibold text-gray-900">{comment.commenter.name}</span>
                 <span className="text-sm text-gray-500">{formatDate(comment.createdAt)}</span>
               </div>
-              <p className="text-gray-700 mb-2">{comment.content}</p>
-              {/* <button
-                className="absolute top-2 right-2 text-xs text-red-500 hover:underline"
-                onClick={() => handleDeleteComment(comment.id)}
-              >
-                刪除
-              </button> */}
+              <div className="flex justify-between items-center">
+                <p className="text-gray-700 mb-2">{comment.content}</p>
+                <button
+                  className="ml-2 text-xs text-red-500 hover:underline shrink-0 pl-6"
+                  onClick={() => handleDeleteComment(comment.id)}
+                >
+                  刪除
+                </button>
+              </div>
               {/* 刪除驗證彈窗 */}
-              {/* {deleteTargetId === comment.id && (
+              {deleteTargetId === comment.id && (
                 <div className="absolute top-8 right-2 bg-white border border-gray-300 rounded shadow-lg p-4 z-20 w-64">
                   <div className="mb-2 text-sm text-gray-700">請輸入留言者名稱以確認刪除：</div>
                   <input
@@ -340,7 +344,7 @@ export default function PostDetail() {
                     <button onClick={confirmDelete} className="px-2 py-1 text-red-600 hover:underline">確認刪除</button>
                   </div>
                 </div>
-              )} */}
+              )}
             </div>
           ))}
         </div>

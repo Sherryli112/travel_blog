@@ -12,6 +12,16 @@ const categoryOptions = [
   { label: '其他', value: 'OTHERS' },
 ] as const;
 
+//評論類型
+type Comment = {
+  id: number;
+  content: string;
+  createdAt: string;
+  commenter: {
+    id: number;
+    name: string;
+  };
+};
 
 //文章類型
 type Post = {
@@ -55,7 +65,7 @@ export default function Home() {
   useEffect(() => {
     const fetchPosts = async () => {
       try {
-        const res = await fetch('http://localhost:3001/posts');
+        const res = await fetch('http://localhost:3001/api/posts');
         if (!res.ok) throw new Error('伺服器錯誤');
         const data: Post[] = await res.json();
         setPosts(data);
@@ -193,10 +203,9 @@ export default function Home() {
                     {post.title}
                   </h2>
                   {/* 摘要 */}
-                  <p
-                    className="text-gray-600 text-base mb-3 line-clamp-2"
-                    dangerouslySetInnerHTML={{ __html: post.content }}
-                  />
+                  <p className="text-gray-600 text-base mb-3 line-clamp-2">
+                    {post.content.replace(/<[^>]+>/g, '')}
+                  </p>
                   {/* 日期 */}
                   <div className="flex items-center text-xs text-gray-400 gap-4 mt-auto">
                     <span>{formatDate(post.updatedAt)}</span>

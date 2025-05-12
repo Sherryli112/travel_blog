@@ -14,7 +14,6 @@ export async function getPosts(ctx: Context) {
   const posts = await prisma.post.findMany({
     where,  //條件過濾
     skip: Number(skip),  //跳過前幾筆(用於分頁)
-    // take: 10,  //取出幾筆資料
     include: { author: true, comments: true },  //包含作者與留言
     orderBy: { createdAt: 'desc' },  //時間排序由新到舊
   });
@@ -47,9 +46,9 @@ type CreatePostBody = {
 export async function createPost(ctx: Context) {
   const { title, content, topic, authorName } = ctx.request.body as CreatePostBody;
   // 先找或建立作者
-  let author = await prisma.author.findUnique({ where: { name: authorName } });
+  let author = await prisma.user.findUnique({ where: { name: authorName } });
   if (!author) {
-    author = await prisma.author.create({ data: { name: authorName } });
+    author = await prisma.user.create({ data: { name: authorName } });
   }
   const post = await prisma.post.create({
     data: { title, content, topic, authorId: author.id },
@@ -103,9 +102,9 @@ export async function addCommentToPost(ctx: Context) {
   const postId = Number(ctx.params.id);
   const { content, commenterName } = ctx.request.body as CreateCommentBody;
   // 先找或建立評論者
-  let commenter = await prisma.commenter.findUnique({ where: { name: commenterName } });
+  let commenter = await prisma.user.findUnique({ where: { name: commenterName } });
   if (!commenter) {
-    commenter = await prisma.commenter.create({ data: { name: commenterName } });
+    commenter = await prisma.user.create({ data: { name: commenterName } });
   }
   const comment = await prisma.comment.create({
     data: { content, postId, commenterId: commenter.id },

@@ -1,17 +1,10 @@
 import Router from 'koa-router';
-import { getPosts, getPostById, createPost, updatePost, deletePost, getCommentsByPost, addCommentToPost } from '../controllers/postController';
+import postsRouter from './posts';
+import commentsRouter from './comments';
 
 const router = new Router();
 
-// 文章相關路由
-router.get('/posts', getPosts);
-router.get('/posts/:id', getPostById);
-router.post('/posts', createPost);
-router.put('/posts/:id', updatePost);
-router.delete('/posts/:id', deletePost);
-
-// 評論相關路由
-router.get('/posts/:id/comments', getCommentsByPost);
-router.post('/posts/:id/comments', addCommentToPost);
+router.use(postsRouter.routes());
+router.use(commentsRouter.routes());
 
 export default router; 

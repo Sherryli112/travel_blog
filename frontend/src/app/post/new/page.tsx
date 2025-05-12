@@ -107,6 +107,7 @@ export default function NewPost() {
     return Object.keys(newErrors).length === 0;
   };
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -131,7 +132,7 @@ export default function NewPost() {
         authorName: formData.author,
       };
 
-      const response = await fetch('http://localhost:3001/posts', {
+      const response = await fetch('http://localhost:3001/api/posts', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -153,6 +154,8 @@ export default function NewPost() {
     } catch (error) {
       console.error('發布文章時發生錯誤：', error);
       alert(error instanceof Error ? error.message : '發布文章失敗，請稍後再試');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -174,7 +177,9 @@ export default function NewPost() {
                 name="category"
                 value={formData.category}
                 onChange={handleInputChange}
-                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.category ? 'border-red-500' : 'border-gray-300'
+                className={`w-full px-3 py-2 border rounded-md focus:outline-none ${errors.category
+                  ? 'border-red-500 focus:ring-red-500 focus:ring-1'
+                  : 'border-gray-300 focus:ring-blue-500 focus:ring-1'
                   }`}
               >
                 <option value="">請選擇主題</option>
@@ -199,7 +204,9 @@ export default function NewPost() {
                 name="author"
                 value={formData.author}
                 onChange={handleInputChange}
-                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.author ? 'border-red-500' : 'border-gray-300'
+                className={`w-full px-3 py-2 border rounded-md focus:outline-none ${errors.author
+                  ? 'border-red-500 focus:ring-red-500 focus:ring-1'
+                  : 'border-gray-300 focus:ring-blue-500 focus:ring-1'
                   }`}
               />
               {errors.author && (
@@ -218,7 +225,9 @@ export default function NewPost() {
                 name="title"
                 value={formData.title}
                 onChange={handleInputChange}
-                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.title ? 'border-red-500' : 'border-gray-300'
+                className={`w-full px-3 py-2 border rounded-md focus:outline-none ${errors.title
+                    ? 'border-red-500 focus:ring-red-500 focus:ring-1'
+                    : 'border-gray-300 focus:ring-blue-500 focus:ring-1'
                   }`}
               />
               {errors.title && (
@@ -259,9 +268,10 @@ export default function NewPost() {
               </Link>
               <button
                 type="submit"
-                className="px-6 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+                disabled={isSubmitting}
+                className={`px-6 py-2 rounded-md text-white ${isSubmitting ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-500 hover:bg-blue-600'}`}
               >
-                發布文章
+                {isSubmitting ? '發布中...' : '發布文章'}
               </button>
             </div>
           </form>
