@@ -3,6 +3,8 @@
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
+import { PencilSquareIcon } from '@heroicons/react/24/outline';
+import { TrashIcon } from '@heroicons/react/24/outline';
 import dayjs from 'dayjs';
 
 //分類類型
@@ -52,14 +54,6 @@ const getCategoryLabel = (value: Post['topic']) => {
   return category ? category.label : value;
 };
 
-//時間格式調整
-// const formatDate = (isoString: string): string => {
-//   const date = new Date(isoString);
-//   const year = date.getFullYear();
-//   const month = `${date.getMonth() + 1}`.padStart(2, '0');
-//   const day = `${date.getDate()}`.padStart(2, '0');
-//   return `${year}-${month}-${day}`;
-// };
 const formatDate = (isoString: string): string => dayjs(isoString).format('YYYY-MM-DD');
 
 export default function PostDetail() {
@@ -266,7 +260,17 @@ export default function PostDetail() {
               </span>
               <span className="text-gray-500 text-sm">{formatDate(post.updatedAt)}</span>
             </div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-4">{post.title}</h1>
+            <div className='flex justify-between items-center mb-4'>
+              <h1 className="text-3xl font-bold text-gray-900">{post.title}</h1>
+              <div className='flex space-x-3 shrink-0'>
+                <Link href={`${postId}/edit`} aria-label="編輯文章">
+                  <span>
+                    <PencilSquareIcon className="w-6 h-6 text-blue-500 hover:text-blue-600 cursor-pointer" />
+                  </span>
+                </Link>
+                <TrashIcon className="w-6 h-6 text-blue-500 hover:text-blue-600 cursor-pointer" />
+              </div>
+            </div>
             <div className="flex items-center mb-6">
               <span className="text-gray-600">作者：{post.author.name}</span>
             </div>
@@ -286,7 +290,7 @@ export default function PostDetail() {
                 value={newCommentAuthor}
                 onChange={e => setNewCommentAuthor(e.target.value)}
                 className={`flex-1 px-4 py-2 border rounded-md focus:outline-none focus:ring-2 ${authorError ? 'border-red-500 focus:ring-red-500 focus:ring-1' : 'border-gray-300 focus:ring-blue-500'}`}
-              /> 
+              />
             </div>
             {authorError && <div className="text-red-500 text-sm mt-1 mb-2">{authorError}</div>}
             <textarea
