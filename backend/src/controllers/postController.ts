@@ -1,24 +1,62 @@
 import { Context } from 'koa';
 import prisma from '../utils/prisma';
-import { Topic } from '../../generated/prisma';
+import { Prisma, Topic } from '../../generated/prisma';
 
 // 取得文章列表
-export async function getPosts(ctx: Context) {
-  // 從 query string 讀取分頁與過濾參數
-  const { skip = 0, author, topic } = ctx.query;
-  // 根據是否有傳參數來建立查詢條件
-  const where: any = {};
-  if (author) where.author = { name: String(author) };
-  if (topic) where.topic = String(topic);
+export const getPosts = async (ctx: Context) => {
+  //從 query string 讀取分頁與過濾參數
+  const {
+    topic,
+    author,
+    page = '1',
+    pageSize = '10'
+  } = ctx.query;
 
-  const posts = await prisma.post.findMany({
-    where,  //條件過濾
-    skip: Number(skip),  //跳過前幾筆(用於分頁)
-    include: { author: true, comments: true },  //包含作者與留言
-    orderBy: { createdAt: 'desc' },  //時間排序由新到舊
-  });
-  ctx.body = posts;
-}
+  //初始為空(但會根據 schema.prisma 自動生成的型別，用來檢查查詢條件的正確結構)，根據參數逐步增加條件
+  const where: Prisma.PostWhereInput = {};
+
+  //如果 topic 存在，並且是 Topic enum 裡的有效值，就加進 where
+  if (topic && Object.values(Topic).includes(topic as Topic)) {
+    where.topic = topic as Topic;
+  }
+
+  //作者名稱(不分大小寫 + 模糊篩選)
+  if (author) {
+    where.author = {
+      name: {
+        contains: author.toString(),
+        mode: 'insensitive', //不區分大小寫搜尋
+      }
+    };
+  }
+
+  //計算分頁
+  const skip = (parseInt(page.toString()) - 1) * parseInt(pageSize.toString());
+
+  //找出特定條件的文章資訊&數量
+  const [posts, total] = await Promise.all([
+    prisma.post.findMany({
+      where,
+      include: {
+        author: true,
+      },
+      skip,
+      take: parseInt(pageSize.toString()),
+      orderBy: { updatedAt: 'desc' }, //時間排序由新到舊
+    }),
+    prisma.post.count({ where }),
+  ]);
+
+  ctx.body = {
+    posts,
+    total,
+    page: parseInt(page.toString()),
+    pageSize: parseInt(pageSize.toString()),
+  };
+};
+
+
+
 
 // 取得單篇文章
 export async function getPostById(ctx: Context) {

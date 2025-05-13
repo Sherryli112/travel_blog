@@ -50,22 +50,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-//作者模型
-model Author {
-  id        Int      @id @default(autoincrement())
-  name      String   @unique //作者名稱，設為唯一以便識別
-  posts     Post[] //一個作者可以有多篇文章
-  createdAt DateTime @default(now())
-}
-
-//評論者模型
-model Commenter {
-  id        Int       @id @default(autoincrement())
-  name      String    @unique //評論者名稱，設為唯一以便識別
-  comments  Comment[] //一個評論者可以有多個評論
-  createdAt DateTime  @default(now())
-}
-
 //文章主題：美食、住宿、景點、其他
 enum Topic {
   FOOD
@@ -74,13 +58,22 @@ enum Topic {
   OTHERS
 }
 
+//使用者模型
+model User {
+  id        Int       @id @default(autoincrement())
+  name      String    @unique
+  posts     Post[]    // 發表的文章
+  comments  Comment[] // 發表的留言
+  createdAt DateTime  @default(now())
+}
+
 //文章模型
 model Post {
   id        Int       @id @default(autoincrement())
   title     String
   content   String    @db.Text
   topic     Topic     @default(OTHERS)
-  author    Author    @relation(fields: [authorId], references: [id]) //關聯作者
+  author    User    @relation(fields: [authorId], references: [id]) //關聯使用者
   authorId  Int
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -94,7 +87,7 @@ model Post {
 model Comment {
   id          Int       @id @default(autoincrement())
   content     String    @db.Text
-  commenter   Commenter @relation(fields: [commenterId], references: [id]) //關聯評論者
+  commenter   User @relation(fields: [commenterId], references: [id]) //關聯使用者
   commenterId Int
   createdAt   DateTime  @default(now())
   post        Post      @relation(fields: [postId], references: [id], onDelete: Cascade) //關聯文章
@@ -142,7 +135,7 @@ docker compose up -d
 npx prisma migrate dev --name init
 ```
 
-### 啟動前端（Next.js）
+### 啟動前後端
 
 ```bash
 npm run dev
@@ -160,12 +153,9 @@ npx prisma studio
 ## 功能與進度追蹤
 
 - [x] 建立資料庫 schema（Prisma）
-- [ ] 設計後端 API（文章與留言 CRUD）
-- [ ] 串接 Prisma 與資料庫
-- [ ] 撰寫前端頁面（文章列表 / 詳情 / 表單）
-- [ ] 串接 API
-- [ ] 實作留言功能與基本驗證
-- [ ] 撰寫 API 文件
+- [x] 撰寫前端頁面 + 基礎功能
+- [ ] 建立後端 API (Koa.js)
+- [ ] 前端串接 API
 - [ ] RWD 調整（可選）
 - [ ] 整合部署（可選）
 

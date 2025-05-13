@@ -126,7 +126,7 @@ export default function EditPostPage() {
             };
 
             const response = await fetch(`http://localhost:3001/api/posts/${paramsId}`, {
-                method: 'PATCH',
+                method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(updatedData),
             });
@@ -192,7 +192,6 @@ export default function EditPostPage() {
                 name="author"
                 value={formData.author}
                 readOnly
-                // onChange={handleInputChange}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 cursor-not-allowed"
               />
               {errors.author && (

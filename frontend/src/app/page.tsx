@@ -10,18 +10,7 @@ const categoryOptions = [
   { label: '住宿', value: 'STAY' },
   { label: '景點', value: 'SPOT' },
   { label: '其他', value: 'OTHERS' },
-] as const;
-
-//評論類型
-type Comment = {
-  id: number;
-  content: string;
-  createdAt: string;
-  commenter: {
-    id: number;
-    name: string;
-  };
-};
+];
 
 //文章類型
 type Post = {
@@ -40,7 +29,7 @@ type Post = {
   comments: Comment[];
 };
 
-//每頁幾篇
+//每頁幾篇(目前暫定一頁 10 篇，可再做調整)
 const POSTS_PER_PAGE = 10;
 
 //時間格式調整
@@ -53,22 +42,41 @@ const formatDate = (isoString: string): string => {
 };
 
 export default function Home() {
+  //後端回傳文章總數
+  const [total, setTotal] = useState(0);
+  //目前此頁的文章資料
   const [posts, setPosts] = useState<Post[]>([]);
+  //處理載入與錯誤狀態
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  //篩選目前的文章主題
   const [selectedCategory, setSelectedCategory] = useState('');
+  //目前頁碼
   const [currentPage, setCurrentPage] = useState(1);
-  const [searchAuthor, setSearchAuthor] = useState('');
+  //還沒按下送出的作者名稱
   const [searchInput, setSearchInput] = useState('');
+  //送出的作者名稱
+  const [searchAuthor, setSearchAuthor] = useState('');
+
 
   // 文章數據
   useEffect(() => {
     const fetchPosts = async () => {
       try {
-        const res = await fetch('http://localhost:3001/api/posts');
+        setLoading(true);
+
+        const params = new URLSearchParams();
+        if (selectedCategory) params.append('topic', selectedCategory);
+        if (searchAuthor) params.append('author', searchAuthor);
+        params.append('page', currentPage.toString());
+        params.append('pageSize', POSTS_PER_PAGE.toString());
+
+        const res = await fetch(`http://localhost:3001/api/posts?${params.toString()}`);
         if (!res.ok) throw new Error('伺服器錯誤');
-        const data: Post[] = await res.json();
-        setPosts(data);
+        const result = await res.json();
+
+        setPosts(result.posts);
+        setTotal(result.total);
         setLoading(false);
       } catch (err) {
         console.error(err);
@@ -77,20 +85,11 @@ export default function Home() {
       }
     };
     fetchPosts();
-  }, []);
+  }, [selectedCategory, searchAuthor, currentPage]);
 
-
-  // 篩選文章
-  const filteredPosts = posts.filter(post => {
-    const categoryMatch = !selectedCategory || post.topic === selectedCategory;
-    const authorMatch = !searchAuthor || post.author.name.toLowerCase().includes(searchAuthor.toLowerCase());
-    return categoryMatch && authorMatch;
-  });
 
   // 計算分頁
-  const totalPages = Math.ceil(filteredPosts.length / POSTS_PER_PAGE);
-  const startIndex = (currentPage - 1) * POSTS_PER_PAGE;
-  const paginatedPosts = filteredPosts.slice(startIndex, startIndex + POSTS_PER_PAGE);
+  const totalPages = Math.ceil(total / POSTS_PER_PAGE);
 
   // 當篩選條件改變時，重置到第一頁
   useEffect(() => {
@@ -184,8 +183,8 @@ export default function Home() {
       {/* 文章列表 */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="space-y-8">
-          {paginatedPosts.map((post) => (
-            <Link href={`/post/${post.id}`} key={post.id} className="block group">
+          {posts.map((posts) => (
+            <Link href={`/post/${posts.id}`} key={posts.id} className="block group">
               <article
                 className="flex flex-col sm:flex-row items-stretch bg-white rounded-lg shadow-sm border border-gray-100 hover:shadow-lg transition-shadow overflow-hidden group-hover:bg-gray-50"
               >
@@ -193,22 +192,22 @@ export default function Home() {
                 <div className="flex-1 p-6 flex flex-col justify-between">
                   {/* 作者與分類 */}
                   <div className="flex items-center gap-2 mb-2">
-                    <span className="text-gray-800 text-sm font-medium mr-2">{post.author.name}</span>
+                    <span className="text-gray-800 text-sm font-medium mr-2">{posts.author.name}</span>
                     <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
-                      {categoryOptions.find(option => option.value === post.topic)?.label ?? post.topic}
+                      {categoryOptions.find(option => option.value === posts.topic)?.label ?? posts.topic}
                     </span>
                   </div>
                   {/* 標題 */}
                   <h2 className="text-xl font-bold text-gray-900 mb-1 line-clamp-1">
-                    {post.title}
+                    {posts.title}
                   </h2>
                   {/* 摘要 */}
                   <p className="text-gray-600 text-base mb-3 line-clamp-2">
-                    {post.content.replace(/<[^>]+>/g, '')}
+                    {posts.content.replace(/<[^>]+>/g, '')}
                   </p>
                   {/* 日期 */}
                   <div className="flex items-center text-xs text-gray-400 gap-4 mt-auto">
-                    <span>{formatDate(post.updatedAt)}</span>
+                    <span>{formatDate(posts.updatedAt)}</span>
                   </div>
                 </div>
 
@@ -242,7 +241,7 @@ export default function Home() {
 
         {/* 顯示當前篩選結果數量 */}
         <div className="text-center mt-4 text-gray-600">
-          共找到 {filteredPosts.length} 篇文章
+          共找到 {total} 篇文章
         </div>
       </div>
     </>

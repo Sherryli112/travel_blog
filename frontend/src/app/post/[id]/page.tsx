@@ -63,7 +63,6 @@ export default function PostDetail() {
   const [loading, setLoading] = useState(true);
   const [deleteSuccessMessage, setDeleteSuccessMessage] = useState('');
   const [comments, setComments] = useState<Comment[]>([]);
-  // const [commentError, setCommentError] = useState('');
   const [commentErrors, setCommentErrors] = useState<{ author?: string; content?: string }>({});
   const [newComment, setNewComment] = useState('');
   const [newCommentAuthor, setNewCommentAuthor] = useState('');
@@ -73,6 +72,10 @@ export default function PostDetail() {
   const [deleteError, setDeleteError] = useState('');
   const [authorError, setAuthorError] = useState('');
   const [contentError, setContentError] = useState('');
+  const [showPostDeleteModal, setShowPostDeleteModal] = useState(false);
+  const [postDeleteInput, setPostDeleteInput] = useState('');
+  const [postDeleteError, setPostDeleteError] = useState('');
+
 
   //獲取留言
   const fetchComments = async () => {
@@ -248,6 +251,39 @@ export default function PostDetail() {
     setDeleteError('');
   };
 
+  const handleConfirmPostDelete = async () => {
+    if (postDeleteInput.trim().toLowerCase() !== post?.author.name.trim().toLowerCase()) {
+      setPostDeleteError('名稱不正確，無法刪除文章');
+      return;
+    }
+    console.log('執行刪除...')
+
+    // try {
+    //   const res = await fetch(`http://localhost:3001/api/posts/${post.id}?authorName=${encodeURIComponent(postDeleteInput.trim())}`, {
+    //     method: 'DELETE',
+    //   });
+
+    //   if (!res.ok) {
+    //     throw new Error('刪除失敗');
+    //   }
+
+    //   // 跳轉回首頁
+    //   window.location.href = '/';
+    // } catch (error) {
+    //   console.error('刪除文章失敗:', error);
+    //   setPostDeleteError('刪除文章失敗，請稍後再試');
+    // }
+  };
+
+  const cancelPostDelete = () => {
+    setShowPostDeleteModal(false);
+    setPostDeleteInput('');
+    setPostDeleteError('');
+  };
+
+
+
+
   return (
     <>
       {/* 文章內容 */}
@@ -268,7 +304,13 @@ export default function PostDetail() {
                     <PencilSquareIcon className="w-6 h-6 text-blue-500 hover:text-blue-600 cursor-pointer" />
                   </span>
                 </Link>
-                <TrashIcon className="w-6 h-6 text-blue-500 hover:text-blue-600 cursor-pointer" />
+                <TrashIcon
+                  onClick={() => {
+                    setShowPostDeleteModal(true);
+                    setPostDeleteInput('');
+                    setPostDeleteError('');
+                  }}
+                  className="w-6 h-6 text-blue-500 hover:text-blue-600 cursor-pointer" />
               </div>
             </div>
             <div className="flex items-center mb-6">
@@ -277,6 +319,37 @@ export default function PostDetail() {
             <div className="prose max-w-none" dangerouslySetInnerHTML={{ __html: post.content }} />
           </div>
         </article>
+        {/* 刪除文章驗證彈窗 */}
+        {showPostDeleteModal && (
+          <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50" onClick={cancelPostDelete}>
+            <div className="bg-white p-6 rounded shadow-md w-80" onClick={(e) => e.stopPropagation()}>
+              <h2 className="text-lg font-semibold text-gray-800 mb-2">刪除文章確認</h2>
+              <p className="text-sm text-gray-600 mb-2">請輸入作者名稱以確認刪除：</p>
+              <input
+                type="text"
+                value={postDeleteInput}
+                onChange={(e) => setPostDeleteInput(e.target.value)}
+                className="w-full px-3 py-2 border rounded mb-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              {postDeleteError && <p className="text-sm text-red-500 mb-2">{postDeleteError}</p>}
+              <div className="flex justify-end gap-2">
+                <button
+                  onClick={cancelPostDelete}
+                  className="text-gray-600 hover:underline px-2 py-1"
+                >
+                  取消
+                </button>
+                <button
+                  onClick={handleConfirmPostDelete}
+                  className="text-red-600 hover:underline px-2 py-1"
+                >
+                  確認刪除
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
 
         {/* 留言區 */}
         <h2 className="text-2xl font-bold text-gray-900 p-6">留言區</h2>
@@ -332,7 +405,7 @@ export default function PostDetail() {
                   刪除
                 </button>
               </div>
-              {/* 刪除驗證彈窗 */}
+              {/* 刪除留言驗證彈窗 */}
               {deleteTargetId === comment.id && (
                 <div className="absolute top-8 right-2 bg-white border border-gray-300 rounded shadow-lg p-4 z-20 w-64">
                   <div className="mb-2 text-sm text-gray-700">請輸入留言者名稱以確認刪除：</div>
