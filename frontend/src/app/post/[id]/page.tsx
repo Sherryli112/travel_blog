@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
-import { useParams } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import { PencilSquareIcon } from '@heroicons/react/24/outline';
 import { TrashIcon } from '@heroicons/react/24/outline';
 import dayjs from 'dayjs';
@@ -58,6 +58,7 @@ const formatDate = (isoString: string): string => dayjs(isoString).format('YYYY-
 
 export default function PostDetail() {
   const params = useParams();
+  const router = useRouter();
   const postId = Number(params.id);
   const [post, setPost] = useState<Post | null>(null);
   const [loading, setLoading] = useState(true);
@@ -75,6 +76,7 @@ export default function PostDetail() {
   const [showPostDeleteModal, setShowPostDeleteModal] = useState(false);
   const [postDeleteInput, setPostDeleteInput] = useState('');
   const [postDeleteError, setPostDeleteError] = useState('');
+
 
 
   //獲取留言
@@ -251,28 +253,28 @@ export default function PostDetail() {
     setDeleteError('');
   };
 
+  //刪除文章
   const handleConfirmPostDelete = async () => {
     if (postDeleteInput.trim().toLowerCase() !== post?.author.name.trim().toLowerCase()) {
       setPostDeleteError('名稱不正確，無法刪除文章');
       return;
     }
-    console.log('執行刪除...')
 
-    // try {
-    //   const res = await fetch(`http://localhost:3001/api/posts/${post.id}?authorName=${encodeURIComponent(postDeleteInput.trim())}`, {
-    //     method: 'DELETE',
-    //   });
+    try {
+      const res = await fetch(`http://localhost:3001/api/posts/${post.id}`, {
+        method: 'DELETE',
+      });
 
-    //   if (!res.ok) {
-    //     throw new Error('刪除失敗');
-    //   }
-
-    //   // 跳轉回首頁
-    //   window.location.href = '/';
-    // } catch (error) {
-    //   console.error('刪除文章失敗:', error);
-    //   setPostDeleteError('刪除文章失敗，請稍後再試');
-    // }
+      if (!res.ok) {
+        throw new Error('刪除失敗');
+      }
+      cancelPostDelete()
+      alert('刪除成功！')
+      router.replace('/');
+    } catch (error) {
+      console.error('刪除文章失敗:', error);
+      setPostDeleteError('刪除文章失敗，請稍後再試');
+    }
   };
 
   const cancelPostDelete = () => {
@@ -280,8 +282,6 @@ export default function PostDetail() {
     setPostDeleteInput('');
     setPostDeleteError('');
   };
-
-
 
 
   return (

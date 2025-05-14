@@ -7,7 +7,7 @@ services:
       POSTGRES_PASSWORD: 666password
       POSTGRES_DB: blog_db
     ports:
-      - "5432:5432"
+      - "5432:5432" # 主機 port : 容器 port
     volumes:  # 把資料庫檔案持久化（儲存在主機上），不會隨容器刪除而消失
       - postgres_data:/var/lib/postgresql/data
     restart: unless-stopped  # 當 Docker 重啟時，自動重啟此容器，除非手動停止
@@ -18,13 +18,27 @@ services:
       dockerfile: Dockerfile
     container_name: blog_backend
     ports:
-      - "4001:3001"
+      - "4001:3000"
     environment:
       - DATABASE_URL=postgresql://postgres:666password@postgres:5432/blog_db
     depends_on:
-      - postgres
+      - postgres # 確保啟動順序，啟動 backend 前要先啟動 postgres
     volumes:
-      - ./backend:/app
+      - ./backend:/app # 把專案資料夾掛載到 docker 上的 /app 位置
+      - /app/node_modules
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: blog_frontend
+    ports:
+      - "4000:3000"
+    depends_on:
+      - backend
+    volumes:
+      - ./frontend:/app
       - /app/node_modules
     restart: unless-stopped
 

@@ -15,7 +15,7 @@ export const getPosts = async (ctx: Context) => {
   //初始為空(但會根據 schema.prisma 自動生成的型別，用來檢查查詢條件的正確結構)，根據參數逐步增加條件
   const where: Prisma.PostWhereInput = {};
 
-  //如果 topic 存在，並且是 Topic enum 裡的有效值，就加進 where
+  // todo 深入了解 19
   if (topic && Object.values(Topic).includes(topic as Topic)) {
     where.topic = topic as Topic;
   }
@@ -138,6 +138,12 @@ type CreateCommentBody = {
 // 新增留言
 export async function addCommentToPost(ctx: Context) {
   const postId = Number(ctx.params.id);
+  const post = await prisma.post.findUnique({ where: { id: postId } });
+  if (!post) {
+    ctx.status = 404;
+    ctx.body = { message: '文章不存在，無法留言' };
+    return;
+  }
   const { content, commenterName } = ctx.request.body as CreateCommentBody;
   // 先找或建立評論者
   let commenter = await prisma.user.findUnique({ where: { name: commenterName } });
