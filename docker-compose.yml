@@ -20,7 +20,7 @@ services:
     ports:
       - "4001:3000"
     environment:
-      - DATABASE_URL=postgresql://postgres:666password@postgres:5432/blog_db
+      - DATABASE_URL=postgresql://postgres:666password@localhost:5432/blog_db
     depends_on:
       - postgres # 確保啟動順序，啟動 backend 前要先啟動 postgres
     volumes:
@@ -32,9 +32,13 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: http://localhost:4001/api
     container_name: blog_frontend
     ports:
       - "4000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:4001/api
     depends_on:
       - backend
     volumes:

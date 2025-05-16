@@ -61,7 +61,7 @@ export default function EditPostPage() {
     useEffect(() => {
         async function fetchPost() {
             try {
-                const res = await fetch(`http://localhost:3001/api/posts/${paramsId}`);
+                const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/posts/${paramsId}`);
                 if (!res.ok) throw new Error('無法載入文章');
                 const data = await res.json();
                 setFormData({
@@ -125,7 +125,7 @@ export default function EditPostPage() {
                 authorName: formData.author,
             };
 
-            const response = await fetch(`http://localhost:3001/api/posts/${paramsId}`, {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/posts/${paramsId}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(updatedData),

@@ -5,16 +5,17 @@ import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { PencilSquareIcon } from '@heroicons/react/24/outline';
 import { TrashIcon } from '@heroicons/react/24/outline';
-import dayjs from 'dayjs';
+import { categoryOptions, getCategoryLabel } from '@/app/utils/constants';
+import dayjs from '@/app/utils/dayjs';
 
 //分類類型
-const categoryOptions = [
-  { label: '全部', value: '' },
-  { label: '美食', value: 'FOOD' },
-  { label: '住宿', value: 'STAY' },
-  { label: '景點', value: 'SPOT' },
-  { label: '其他', value: 'OTHERS' },
-] as const;
+// const categoryOptions = [
+//   { label: '全部', value: '' },
+//   { label: '美食', value: 'FOOD' },
+//   { label: '住宿', value: 'STAY' },
+//   { label: '景點', value: 'SPOT' },
+//   { label: '其他', value: 'OTHERS' },
+// ] as const;
 
 //作者類型
 type Author = {
@@ -49,40 +50,54 @@ type Post = {
 };
 
 //分類類型對應
-const getCategoryLabel = (value: Post['topic']) => {
-  const category = categoryOptions.find(c => c.value === value);
-  return category ? category.label : value;
-};
+// const getCategoryLabel = (value: Post['topic']) => {
+//   const category = categoryOptions.find(c => c.value === value);
+//   return category ? category.label : value;
+// };
 
-const formatDate = (isoString: string): string => dayjs(isoString).format('YYYY-MM-DD');
+const formatDate = (isoString: string): string => dayjs(isoString).tz('Asia/Taipei').format('YYYY-MM-DD');
 
 export default function PostDetail() {
   const params = useParams();
   const router = useRouter();
   const postId = Number(params.id);
+  //文章內容
   const [post, setPost] = useState<Post | null>(null);
+  //載入狀態
   const [loading, setLoading] = useState(true);
-  const [deleteSuccessMessage, setDeleteSuccessMessage] = useState('');
+  //取得留言的陣列
   const [comments, setComments] = useState<Comment[]>([]);
-  const [commentErrors, setCommentErrors] = useState<{ author?: string; content?: string }>({});
-  const [newComment, setNewComment] = useState('');
+  //留言刪除成功提示
+  const [deleteSuccessMessage, setDeleteSuccessMessage] = useState('');
+  //新增留言框 - 作者
   const [newCommentAuthor, setNewCommentAuthor] = useState('');
-  const [showAllComments, setShowAllComments] = useState(false);
-  const [deleteTargetId, setDeleteTargetId] = useState<number | null>(null);
-  const [deleteInput, setDeleteInput] = useState('');
-  const [deleteError, setDeleteError] = useState('');
+  //新增留言框 - 內容
+  const [newComment, setNewComment] = useState('');
+  //新增留言框 - 作者沒填
   const [authorError, setAuthorError] = useState('');
+  //新增留言框 - 內容沒填
   const [contentError, setContentError] = useState('');
-  const [showPostDeleteModal, setShowPostDeleteModal] = useState(false);
+  //是否顯示全部留言
+  const [showAllComments, setShowAllComments] = useState(false);
+  //刪除留言的ID
+  const [deleteTargetId, setDeleteTargetId] = useState<number | null>(null);
+  //刪除留言確認框的使用者名稱
+  const [deleteInput, setDeleteInput] = useState('');
+  //刪除留言的確認框 - 使用者名稱輸入錯誤提示
+  const [deleteError, setDeleteError] = useState('');
+  //刪除文章確認框的使用者名稱
   const [postDeleteInput, setPostDeleteInput] = useState('');
+  //刪除文章的確認框 - 使用者名稱輸入錯誤提示
   const [postDeleteError, setPostDeleteError] = useState('');
+  //刪除文章的確認框是否顯示
+  const [showPostDeleteModal, setShowPostDeleteModal] = useState(false);
 
 
 
   //獲取留言
   const fetchComments = async () => {
     try {
-      const res = await fetch(`http://localhost:3001/api/posts/${postId}/comments`);
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/posts/${postId}/comments`);
       if (!res.ok) throw new Error('無法取得留言');
       const data = await res.json();
       setComments(data);
@@ -94,7 +109,7 @@ export default function PostDetail() {
   useEffect(() => {
     const fetchPost = async () => {
       try {
-        const res = await fetch(`http://localhost:3001/api/posts/${postId}`);
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/posts/${postId}`);
         if (!res.ok) throw new Error('找不到文章');
         const data = await res.json();
         setPost(data);
@@ -155,7 +170,6 @@ export default function PostDetail() {
     let isValid = true;
     setAuthorError('');
     setContentError('');
-
     if (!trimmedAuthor) {
       setAuthorError('請輸入留言者名稱');
       isValid = false;
@@ -181,7 +195,7 @@ export default function PostDetail() {
     e.preventDefault();
     if (!validateCommentForm()) return;
     try {
-      const res = await fetch(`http://localhost:3001/api/posts/${postId}/comments`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/posts/${postId}/comments`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -197,8 +211,6 @@ export default function PostDetail() {
       await fetchComments();
       setNewComment('');
       setNewCommentAuthor('');
-      // setCommentError('');
-      setCommentErrors({});
     } catch (err: any) {
       console.error('留言失敗：', err.message);
       setContentError(err.message || '留言送出失敗，請稍後再試');
@@ -226,7 +238,7 @@ export default function PostDetail() {
     }
 
     try {
-      const res = await fetch(`http://localhost:3001/api/comments/${deleteTargetId}?commenterName=${encodeURIComponent(deleteInput.trim())}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/comments/${deleteTargetId}?commenterName=${encodeURIComponent(deleteInput.trim())}`, {
         method: 'DELETE',
       });
 

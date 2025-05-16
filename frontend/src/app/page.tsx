@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
+import dayjs from '@/app/utils/dayjs';
 
 //分類類型
 const categoryOptions = [
@@ -33,13 +34,7 @@ type Post = {
 const POSTS_PER_PAGE = 10;
 
 //時間格式調整
-const formatDate = (isoString: string): string => {
-  const date = new Date(isoString);
-  const year = date.getFullYear();
-  const month = `${date.getMonth() + 1}`.padStart(2, '0');
-  const day = `${date.getDate()}`.padStart(2, '0');
-  return `${year}-${month}-${day}`;
-};
+const formatDate = (isoString: string): string => dayjs(isoString).tz('Asia/Taipei').format('YYYY-MM-DD');
 
 export default function Home() {
   //後端回傳文章總數
@@ -70,8 +65,9 @@ export default function Home() {
         if (searchAuthor) params.append('author', searchAuthor);
         params.append('page', currentPage.toString());
         params.append('pageSize', POSTS_PER_PAGE.toString());
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/posts?${params.toString()}`);
 
-        const res = await fetch(`http://localhost:3001/api/posts?${params.toString()}`);
+        // const res = await fetch(`http://localhost:3001/api/posts?${params.toString()}`);
         if (!res.ok) throw new Error('伺服器錯誤');
         const result = await res.json();
 

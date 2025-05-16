@@ -41,12 +41,14 @@ const formats = [
 
 export default function NewPost() {
   const router = useRouter();
+  //表單內容(文章)
   const [formData, setFormData] = useState<FormData>({
     category: '',
     author: '',
     title: '',
     content: '',
   });
+  //存入出錯的欄位
   const [errors, setErrors] = useState<Partial<FormData>>({});
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -132,7 +134,7 @@ export default function NewPost() {
         authorName: formData.author,
       };
 
-      const response = await fetch('http://localhost:3001/api/posts', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/posts`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

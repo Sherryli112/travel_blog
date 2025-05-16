@@ -125,7 +125,7 @@ export async function getCommentsByPost(ctx: Context) {
   const comments = await prisma.comment.findMany({
     where: { postId },
     include: { commenter: true },
-    orderBy: { createdAt: 'asc' },
+    orderBy: { createdAt: 'desc' },
   });
   ctx.body = comments;
 }
