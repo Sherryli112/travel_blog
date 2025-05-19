@@ -117,6 +117,12 @@ model Comment {
 
 ## 專案啟動流程
 
+### 安裝並啟動 Docker
+
+```
+win + R 找到 Docker Desktop Service 確認啟動
+```
+
 ### 安裝依賴
 
 ```bash
@@ -126,10 +132,10 @@ npm install
 ### 啟動 PostgreSQL（Docker）
 
 ```bash
-docker compose up -d
+docker-compose up -d postgres
 ```
 
-### 建立資料表（Prisma Migration）
+### 建立資料表（Prisma Migration，首次 clone 時）
 
 ```bash
 npx prisma migrate dev --name init
@@ -150,14 +156,37 @@ npx prisma studio
 
 ---
 
+## 專案部署流程
+
+### 啟動前後端資料庫容器
+
+```bash
+docker-compose down --remove-orphans
+docker-compose build --no-cache
+docker-compose up -d
+```
+
+### 開啟預設網址
+
+```
+前端：http://localhost:4000
+後端 API：http://localhost:4001/api/posts
+```
+
+### 停止容器
+
+```bash
+docker-compose down
+```
+
+---
+
 ## 功能與進度追蹤
 
 - [x] 建立資料庫 schema（Prisma）
 - [x] 撰寫前端頁面 + 基礎功能
-- [ ] 建立後端 API (Koa.js)
-- [ ] 前端串接 API
-- [ ] RWD 調整（可選）
-- [ ] 整合部署（可選）
+- [x] 建立後端 API (Koa.js)
+- [x] 前端串接 API
 
 ---
 
@@ -170,5 +199,7 @@ npx prisma studio
 
 ## 可拓展功能
 
-- 使用者登入 / 驗證機制
-- 後端單元測試（Mocha）
+- [x] RWD 調整
+- [x] 整合部署
+- [ ] 使用者登入 / 驗證機制
+- [ ] 後端單元測試（Mocha）

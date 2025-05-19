@@ -39,9 +39,6 @@ services:
     container_name: blog_frontend
     ports:
       - "4000:3000"
-    # environment:
-      # - NODE_ENV=production
-      # - DATABASE_URL=http://localhost:4001/api
     depends_on:
       - backend
     volumes:
