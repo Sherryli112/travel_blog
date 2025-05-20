@@ -117,33 +117,38 @@ model Comment {
 
 ## 專案啟動流程
 
-### 啟動 Docker
+### 啟動 Docker（也可直接打開 Docker Desktop 工具）
 
 ```bash
-sc start com.docker.service
+sc start com.docker.service (window)
 ```
 
 ### 安裝依賴
 
 ```bash
-npm install
+cd blog-project && npm install
+cd backend && npm install
+cd ../frontend && npm install
 ```
 
 ### 啟動 PostgreSQL（Docker）
 
 ```bash
+cd blog-project
 docker-compose up -d postgres
 ```
 
 ### 建立資料表（Prisma Migration，首次 clone 時）
 
 ```bash
+cd backend
 npx prisma migrate dev --name init
 ```
 
 ### 啟動前後端
 
 ```bash
+cd blog-project
 npm run dev
 ```
 
@@ -158,12 +163,28 @@ npx prisma studio
 
 ## 專案部署流程
 
-### 啟動前後端資料庫容器
+### 清空目前正在使用的容器、網路，並移除非 docker-compose.yml 中定義的容器
 
 ```bash
 docker-compose down --remove-orphans
-docker-compose build --no-cache
+```
+
+### 根據 Dockerfile 重新建構 Image
+
+```bash
+docker-compose build
+```
+
+### 啟動前後端資料庫容器
+
+```bash
 docker-compose up -d
+```
+
+### 修改程式碼後更新 Image + 重啟容器
+
+```bash
+docker-compose up -d --build
 ```
 
 ### 開啟預設網址
@@ -192,10 +213,9 @@ docker-compose down
 
 ## 補充說明
 
-- `frontend/` 內含 Next.js 專案，請參考其內部的 [`README.md`](./frontend/README.md)
+- 本專案需要 Docker 環境，用於啟動 PostgreSQL 容器，請先安裝 Docker Desktop 並確認可正常執行 docker --version
 - 本專案未實作登入機制，留言僅使用使用者輸入的暱稱進行驗證
-- 開發模式與部署模式不可同時啟動
-請擇一啟用 npm run dev（本地開發模式）或 docker-compose up（部署模式），兩者同時啟動會導致服務埠衝突或資料庫連線錯誤
+- `frontend/` 內含 Next.js 專案，請參考其內部的 [`README.md`](./frontend/README.md)
 
 
 
