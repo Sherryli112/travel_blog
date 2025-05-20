@@ -117,10 +117,10 @@ model Comment {
 
 ## 專案啟動流程
 
-### 安裝並啟動 Docker
+### 啟動 Docker
 
-```
-win + R 找到 Docker Desktop Service 確認啟動
+```bash
+sc start com.docker.service
 ```
 
 ### 安裝依賴
@@ -194,6 +194,10 @@ docker-compose down
 
 - `frontend/` 內含 Next.js 專案，請參考其內部的 [`README.md`](./frontend/README.md)
 - 本專案未實作登入機制，留言僅使用使用者輸入的暱稱進行驗證
+- 開發模式與部署模式不可同時啟動
+請擇一啟用 npm run dev（本地開發模式）或 docker-compose up（部署模式），兩者同時啟動會導致服務埠衝突或資料庫連線錯誤
+
+
 
 ---
 

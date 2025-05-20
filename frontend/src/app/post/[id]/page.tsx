@@ -328,7 +328,7 @@ export default function PostDetail() {
             <div className="flex items-center mb-6">
               <span className="text-gray-600">作者：{post.author.name}</span>
             </div>
-            <div className="prose max-w-none" dangerouslySetInnerHTML={{ __html: post.content }} />
+            <div className="prose max-w-none content" dangerouslySetInnerHTML={{ __html: post.content }} />
           </div>
         </article>
         {/* 刪除文章驗證彈窗 */}
