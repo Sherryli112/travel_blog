@@ -65,14 +65,28 @@ export default function Home() {
         if (searchAuthor) params.append('author', searchAuthor);
         params.append('page', currentPage.toString());
         params.append('pageSize', POSTS_PER_PAGE.toString());
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/posts?${params.toString()}`);
-
         // const res = await fetch(`http://localhost:3001/api/posts?${params.toString()}`);
-        if (!res.ok) throw new Error('伺服器錯誤');
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/posts?${params.toString()}`);
         const result = await res.json();
 
-        setPosts(result.posts);
-        setTotal(result.total);
+        if (!res.ok) {
+          throw new Error(result.message || '伺服器錯誤');
+        }
+
+        // if (!res.ok) {
+        //   let errorMessage = '伺服器錯誤';
+        //   if (res.status === 400) {
+        //     errorMessage = result.message || '請求錯誤';
+        //   } else if (res.status === 404) {
+        //     errorMessage = '找不到資源';
+        //   } else if (res.status === 500) {
+        //     errorMessage = '伺服器錯誤';
+        //   }
+        //   throw new Error(errorMessage);
+        // }
+
+        setPosts(result.data.posts);
+        setTotal(result.data.total);
         setLoading(false);
       } catch (err) {
         console.error(err);

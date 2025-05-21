@@ -7,146 +7,150 @@ import dynamic from 'next/dynamic';
 import 'react-quill/dist/quill.snow.css';
 
 const ReactQuill = dynamic(() => import('react-quill'), {
-    ssr: false,
-    loading: () => <p>載入編輯器中...</p>,
+  ssr: false,
+  loading: () => <p>載入編輯器中...</p>,
 });
 
 type FormData = {
-    category: string;
-    author: string;
-    title: string;
-    content: string;
+  category: string;
+  author: string;
+  title: string;
+  content: string;
 };
 
 const modules = {
-    toolbar: [
-        [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
-        ['bold', 'italic', 'underline', 'strike'],
-        [{ 'color': [] }, { 'background': [] }],
-        [{ 'align': [] }],
-        [{ 'list': 'ordered' }, { 'list': 'bullet' }],
-    ],
+  toolbar: [
+    [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+    ['bold', 'italic', 'underline', 'strike'],
+    [{ 'color': [] }, { 'background': [] }],
+    [{ 'align': [] }],
+    [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+  ],
 };
 
 const formats = [
-    'header', 'bold', 'italic', 'underline', 'strike',
-    'color', 'background', 'align', 'list', 'bullet', 'link', 'image'
+  'header', 'bold', 'italic', 'underline', 'strike',
+  'color', 'background', 'align', 'list', 'bullet', 'link', 'image'
 ];
 
 export default function EditPostPage() {
-    const params = useParams();
-    const paramsId = Number(params.id);
-    const router = useRouter();
-    const [formData, setFormData] = useState<FormData>({
-        category: '',
-        author: '',
-        title: '',
-        content: '',
-    });
-    const [errors, setErrors] = useState<Partial<FormData>>({});
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const topicMap: Record<string, 'FOOD' | 'STAY' | 'SPOT' | 'OTHERS'> = {
-        '美食': 'FOOD',
-        '住宿': 'STAY',
-        '景點': 'SPOT',
-        '其他': 'OTHERS'
-    };
-    const reverseMap = {
-        'FOOD': '美食',
-        'STAY': '住宿',
-        'SPOT': '景點',
-        'OTHERS': '其他'
-    };
+  const params = useParams();
+  const paramsId = Number(params.id);
+  const router = useRouter();
+  const [formData, setFormData] = useState<FormData>({
+    category: '',
+    author: '',
+    title: '',
+    content: '',
+  });
+  const [errors, setErrors] = useState<Partial<FormData>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const topicMap: Record<string, 'FOOD' | 'STAY' | 'SPOT' | 'OTHERS'> = {
+    '美食': 'FOOD',
+    '住宿': 'STAY',
+    '景點': 'SPOT',
+    '其他': 'OTHERS'
+  };
+  const reverseMap = {
+    'FOOD': '美食',
+    'STAY': '住宿',
+    'SPOT': '景點',
+    'OTHERS': '其他'
+  };
 
-    useEffect(() => {
-        async function fetchPost() {
-            try {
-                const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/posts/${paramsId}`);
-                if (!res.ok) throw new Error('無法載入文章');
-                const data = await res.json();
-                setFormData({
-                    category: reverseMap[data.topic as 'FOOD' | 'STAY' | 'SPOT' | 'OTHERS'],
-                    author: data.author.name,
-                    title: data.title,
-                    content: data.content,
-                });
-            } catch (err) {
-                console.error(err);
-                alert('載入文章失敗');
-            }
-        }
+  useEffect(() => {
+    async function fetchPost() {
+      try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/posts/${paramsId}`);
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.message || '無法載入文章');
 
-        fetchPost();
-    }, [paramsId]);
+        setFormData({
+          category: reverseMap[data.data.topic as 'FOOD' | 'STAY' | 'SPOT' | 'OTHERS'],
+          author: data.data.author.name,
+          title: data.data.title,
+          content: data.data.content,
+        });
+      } catch (err) {
+        console.error(err);
+        alert('載入文章失敗');
+      }
+    }
+
+    fetchPost();
+  }, [paramsId]);
 
 
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-        const { name, value } = e.target;
-        setFormData(prev => ({ ...prev, [name]: value }));
-        if (errors[name as keyof FormData]) {
-            setErrors(prev => ({ ...prev, [name]: undefined }));
-        }
-    };
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+    if (errors[name as keyof FormData]) {
+      setErrors(prev => ({ ...prev, [name]: undefined }));
+    }
+  };
 
-    const handleContentChange = (content: string) => {
-        setFormData(prev => ({ ...prev, content }));
-        if (errors.content) {
-            setErrors(prev => ({ ...prev, content: undefined }));
-        }
-    };
+  const handleContentChange = (content: string) => {
+    setFormData(prev => ({ ...prev, content }));
+    if (errors.content) {
+      setErrors(prev => ({ ...prev, content: undefined }));
+    }
+  };
 
-    const validateForm = () => {
-        const newErrors: Partial<FormData> = {};
-        const stripHtml = (html: string) => html.replace(/<[^>]*>/g, '').trim();
+  const validateForm = () => {
+    const newErrors: Partial<FormData> = {};
+    const stripHtml = (html: string) => html.replace(/<[^>]*>/g, '').trim();
 
-        if (!formData.category) newErrors.category = '請選擇文章主題';
-        if (!formData.author) newErrors.author = '請輸入作者名稱';
-        if (!formData.title) newErrors.title = '請輸入文章標題';
-        else if (formData.title.length < 5) newErrors.title = '標題至少需要5個字';
+    if (!formData.category) newErrors.category = '請選擇文章主題';
+    if (!formData.author) newErrors.author = '請輸入作者名稱';
+    if (!formData.title) newErrors.title = '請輸入文章標題';
+    else if (formData.title.length < 5) newErrors.title = '標題至少需要5個字';
 
-        const contentText = stripHtml(formData.content);
-        if (!contentText) newErrors.content = '請輸入文章內容';
-        else if (contentText.length < 20) newErrors.content = '內容至少需要20個字';
+    const contentText = stripHtml(formData.content);
+    if (!contentText) newErrors.content = '請輸入文章內容';
+    else if (contentText.length < 20) newErrors.content = '內容至少需要20個字';
 
-        setErrors(newErrors);
-        return Object.keys(newErrors).length === 0;
-    };
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!validateForm()) return;
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!validateForm()) return;
 
-        setIsSubmitting(true);
-        try {
-            const updatedData = {
-                title: formData.title,
-                content: formData.content,
-                topic: topicMap[formData.category],
-                authorName: formData.author,
-            };
+    setIsSubmitting(true);
+    try {
+      const updatedData = {
+        title: formData.title,
+        content: formData.content,
+        topic: topicMap[formData.category],
+        authorName: formData.author,
+      };
 
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/posts/${paramsId}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(updatedData),
-            });
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/posts/${paramsId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updatedData),
+      });
 
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.message || '更新文章失敗');
-            }
+      const data = await res.json();
 
-            router.push('/');
-            router.refresh();
-        } catch (error) {
-            console.error(error);
-            alert(error instanceof Error ? error.message : '更新失敗，請稍後再試');
-        } finally {
-            setIsSubmitting(false);
-        }
-    };
+      if (!res.ok) {
+        throw new Error(data.message || '更新文章失敗');
+      }
 
-    return (
+      alert(data.message);
+
+      router.push('/');
+      router.refresh();
+    } catch (error) {
+      console.error(error);
+      alert(error instanceof Error ? error.message : '更新失敗，請稍後再試');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
     <>
       {/* 表單內容 */}
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -211,8 +215,8 @@ export default function EditPostPage() {
                 value={formData.title}
                 onChange={handleInputChange}
                 className={`w-full px-3 py-2 border rounded-md focus:outline-none ${errors.title
-                    ? 'border-red-500 focus:ring-red-500 focus:ring-1'
-                    : 'border-gray-300 focus:ring-blue-500 focus:ring-1'
+                  ? 'border-red-500 focus:ring-red-500 focus:ring-1'
+                  : 'border-gray-300 focus:ring-blue-500 focus:ring-1'
                   }`}
               />
               {errors.title && (

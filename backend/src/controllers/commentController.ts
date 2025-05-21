@@ -1,15 +1,21 @@
 import { Context } from 'koa';
 import prisma from '../utils/prisma';
-
+import { successResponse, errorResponse } from '../utils/response';
 
 // 刪除留言（簡易驗證：確認名稱是否一致）
 export async function deleteComment(ctx: Context) {
   const id = Number(ctx.params.id);
   const commenterName = ctx.query.commenterName as string;
 
+  if (isNaN(id)) {
+    ctx.status = 400;
+    ctx.body = errorResponse('ID 必須是數字');
+    return;
+  }
+
   if (!commenterName) {
     ctx.status = 400;
-    ctx.body = { error: 'Commenter name is required' };
+    ctx.body = errorResponse('缺少留言者名稱');
     return;
   }
 
@@ -20,16 +26,16 @@ export async function deleteComment(ctx: Context) {
 
   if (!comment) {
     ctx.status = 404;
-    ctx.body = { error: 'Comment not found' };
+    ctx.body = errorResponse('找不到該留言');
     return;
   }
 
   if (!comment.commenter || comment.commenter.name !== commenterName) {
     ctx.status = 403;
-    ctx.body = { error: 'Permission denied: Name does not match' };
+    ctx.body = errorResponse('留言者名稱不符，無法刪除留言');
     return;
   }
 
   await prisma.comment.delete({ where: { id } });
-  ctx.status = 204; //成功刪除，但不回傳內容
+  ctx.body = successResponse({ id }, '留言已刪除');
 }

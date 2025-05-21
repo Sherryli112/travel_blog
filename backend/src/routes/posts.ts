@@ -17,7 +17,7 @@ router.post('/', postController.createPost);
 router.put('/:id', postController.updatePost);
 
 //刪除文章
-router.delete('/:id', postController.deletePost);
+router.post('/:id/delete', postController.deletePost);
 
 //取得文章留言
 router.get('/:id/comments', postController.getCommentsByPost);

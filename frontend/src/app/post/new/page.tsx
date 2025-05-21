@@ -134,7 +134,7 @@ export default function NewPost() {
         authorName: formData.author,
       };
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/posts`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/posts`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -142,13 +142,13 @@ export default function NewPost() {
         body: JSON.stringify(postData),
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || '發布文章失敗');
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.message || '發布文章失敗');
       }
 
-      const result = await response.json();
-      console.log('文章發布成功：', result);
+      alert(data.message);
 
       // 發布成功後跳轉到首頁
       router.push('/');

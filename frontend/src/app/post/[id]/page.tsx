@@ -67,8 +67,10 @@ export default function PostDetail() {
   const [loading, setLoading] = useState(true);
   //取得留言的陣列
   const [comments, setComments] = useState<Comment[]>([]);
-  //留言刪除成功提示
-  const [deleteSuccessMessage, setDeleteSuccessMessage] = useState('');
+  //留言操作成功提示
+  const [commentHandleMessage, setCommentHandleMessage] = useState('');
+  //留言新增或刪除修改顏色
+  const [commentMessageType, setCommentMessageType] = useState<'success' | 'error' | ''>('');
   //新增留言框 - 作者
   const [newCommentAuthor, setNewCommentAuthor] = useState('');
   //新增留言框 - 內容
@@ -98,9 +100,9 @@ export default function PostDetail() {
   const fetchComments = async () => {
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/posts/${postId}/comments`);
-      if (!res.ok) throw new Error('無法取得留言');
       const data = await res.json();
-      setComments(data);
+      if (!res.ok) throw new Error(data.message || '取得留言失敗');
+      setComments(data.data);
     } catch (error) {
       console.error('取得留言失敗:', error);
     }
@@ -110,9 +112,9 @@ export default function PostDetail() {
     const fetchPost = async () => {
       try {
         const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/posts/${postId}`);
-        if (!res.ok) throw new Error('找不到文章');
         const data = await res.json();
-        setPost(data);
+        if (!res.ok) throw new Error(data.message || '找不到文章');
+        setPost(data.data);
       } catch (error) {
         console.error(error);
         setPost(null);
@@ -204,13 +206,18 @@ export default function PostDetail() {
         }),
       });
 
+      const data = await res.json();
+
       if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.error || '留言失敗');
+        throw new Error(data.message || '留言失敗');
       }
+
       await fetchComments();
       setNewComment('');
       setNewCommentAuthor('');
+      setCommentHandleMessage('留言新增成功');
+      setCommentMessageType('success');
+      setTimeout(() => setCommentHandleMessage(''), 3000);
     } catch (err: any) {
       console.error('留言失敗：', err.message);
       setContentError(err.message || '留言送出失敗，請稍後再試');
@@ -242,17 +249,18 @@ export default function PostDetail() {
         method: 'DELETE',
       });
 
-      if (!res.ok) {
-        throw new Error('刪除失敗');
-      }
+      const data = await res.json();
 
+      if (!res.ok) {
+        throw new Error(data.message || '刪除失敗');
+      }
       await fetchComments(); // 重新取得留言
       setDeleteTargetId(null);
       setDeleteInput('');
       setDeleteError('');
-      setDeleteSuccessMessage('留言已成功刪除');
-
-      setTimeout(() => setDeleteSuccessMessage(''), 3000);
+      setCommentHandleMessage('留言已成功刪除');
+      setCommentMessageType('error');
+      setTimeout(() => setCommentHandleMessage(''), 3000);
     } catch (error) {
       console.error('刪除留言失敗：', error);
       setDeleteError('刪除留言失敗，請稍後再試');
@@ -267,21 +275,27 @@ export default function PostDetail() {
 
   //刪除文章
   const handleConfirmPostDelete = async () => {
-    if (postDeleteInput.trim().toLowerCase() !== post?.author.name.trim().toLowerCase()) {
+    const authorName = postDeleteInput.trim().toLowerCase()
+    const postAuthorName = post?.author.name.trim().toLowerCase();
+    if (authorName !== postAuthorName) {
       setPostDeleteError('名稱不正確，無法刪除文章');
       return;
     }
 
     try {
-      const res = await fetch(`http://localhost:3001/api/posts/${post.id}`, {
-        method: 'DELETE',
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/posts/${post.id}/delete`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ authorName })
       });
 
+      const data = await res.json();
+
       if (!res.ok) {
-        throw new Error('刪除失敗');
+        throw new Error(data.message || '刪除失敗');
       }
       cancelPostDelete()
-      alert('刪除成功！')
+      alert(data.message)
       router.replace('/');
     } catch (error) {
       console.error('刪除文章失敗:', error);
@@ -396,9 +410,16 @@ export default function PostDetail() {
           </form>
         </div>
         {/* 留言列表 */}
-        {deleteSuccessMessage && (
-          <div className="text-green-600 bg-green-100 border border-green-300 px-4 py-2 rounded mb-4">
-            {deleteSuccessMessage}
+        {commentHandleMessage && (
+          <div
+            className={`mb-4 px-4 py-2 rounded border ${commentMessageType === 'success'
+              ? 'bg-green-100 text-green-600 border-green-300'
+              : commentMessageType === 'error'
+                ? 'bg-red-100 text-red-600 border-red-300'
+                : ''
+              }`}
+          >
+            {commentHandleMessage}
           </div>
         )}
         <div className="space-y-4">

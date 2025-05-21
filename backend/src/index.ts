@@ -2,6 +2,7 @@ import dotenv from 'dotenv';
 import Koa from 'koa';
 import cors from '@koa/cors';
 import bodyParser from 'koa-bodyparser';
+import { errorHandler } from './middleware/errorHandler';
 import router from './routes';
 
 dotenv.config({
@@ -15,6 +16,9 @@ const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || [
   'http://localhost:3000',
   'http://localhost:4000'
 ];
+
+// 接收 ctx.request.body 取得 POST、PUT 請求中送來的資料
+app.use(bodyParser());
 
 // 設定 cors 中間件
 app.use(cors({
@@ -32,8 +36,9 @@ app.use(cors({
   credentials: true, // 是否允許攜帶 cookies 或授權資訊
 }));
 
-// 接收 ctx.request.body 取得 POST、PUT 請求中送來的資料
-app.use(bodyParser());
+
+//由中介一併處理錯誤
+app.use(errorHandler);
 
 // 使用路由
 app.use(router.routes());
