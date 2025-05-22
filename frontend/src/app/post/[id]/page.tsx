@@ -235,18 +235,21 @@ export default function PostDetail() {
     setDeleteError('');
   };
 
+  // 刪除留言確認
   const confirmDelete = async () => {
     const target = comments.find(c => c.id === deleteTargetId);
     if (!target) return;
 
-    if (deleteInput.trim().toLowerCase() !== target.commenter.name.trim().toLowerCase()) {
+    if (deleteInput !== target.commenter.name) {
       setDeleteError('名稱不正確，無法刪除留言');
       return;
     }
 
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/comments/${deleteTargetId}?commenterName=${encodeURIComponent(deleteInput.trim())}`, {
-        method: 'DELETE',
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/comments/${deleteTargetId}/delete`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ commenterName: deleteInput }),
       });
 
       const data = await res.json();
@@ -267,6 +270,7 @@ export default function PostDetail() {
     }
   };
 
+  // 取消刪除留言
   const cancelDelete = () => {
     setDeleteTargetId(null);
     setDeleteInput('');
@@ -275,8 +279,8 @@ export default function PostDetail() {
 
   //刪除文章
   const handleConfirmPostDelete = async () => {
-    const authorName = postDeleteInput.trim().toLowerCase()
-    const postAuthorName = post?.author.name.trim().toLowerCase();
+    const authorName = postDeleteInput
+    const postAuthorName = post?.author.name
     if (authorName !== postAuthorName) {
       setPostDeleteError('名稱不正確，無法刪除文章');
       return;

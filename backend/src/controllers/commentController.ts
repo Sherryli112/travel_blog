@@ -5,7 +5,7 @@ import { successResponse, errorResponse } from '../utils/response';
 // 刪除留言（簡易驗證：確認名稱是否一致）
 export async function deleteComment(ctx: Context) {
   const id = Number(ctx.params.id);
-  const commenterName = ctx.query.commenterName as string;
+  const { commenterName } = ctx.request.body as { commenterName?: string };
 
   if (isNaN(id)) {
     ctx.status = 400;
@@ -37,5 +37,5 @@ export async function deleteComment(ctx: Context) {
   }
 
   await prisma.comment.delete({ where: { id } });
-  ctx.body = successResponse({ id }, '留言已刪除');
+  ctx.body = successResponse({ id }, '留言已成功刪除');
 }

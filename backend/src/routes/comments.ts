@@ -5,6 +5,6 @@ import * as commentController from '../controllers/commentController';
 const router = new Router({ prefix: '/api/comments' });
 
 //刪除留言
-router.delete('/:id', commentController.deleteComment);
+router.post('/:id/delete', commentController.deleteComment);
 
 export default router;

@@ -55,92 +55,6 @@ export const getPosts = async (ctx: Context) => {
   }, '取得文章列表成功');
 };
 
-// export const getPosts = async (ctx: Context) => {
-//   //從 query string 讀取分頁與過濾參數
-//   const {
-//     topic,
-//     author,
-//     page = '1',
-//     pageSize = '10'
-//   } = ctx.query;
-
-//   const pageNum = parseInt(page.toString());
-//   const sizeNum = parseInt(pageSize.toString());
-
-//   if (isNaN(pageNum) || pageNum < 1 || isNaN(sizeNum) || sizeNum < 1) {
-//     ctx.status = 400;
-//     ctx.body = {
-//       success: false,
-//       message: 'page 與 pageSize 需為大於 0 的整數',
-//     };
-//     return;
-//   }
-
-
-//   //初始為空(但會根據 schema.prisma 自動生成的型別，用來檢查查詢條件的正確結構)，根據參數逐步增加條件
-//   const where: Prisma.PostWhereInput = {};
-
-//   //Todo
-//   if (topic && !Object.values(Topic).includes(topic as Topic)) {
-//     ctx.status = 400;
-//     ctx.body = {
-//       success: false,
-//       message: 'topic 格式錯誤，請確認是否為有效值',
-//     };
-//     return;
-//   }
-
-//   if (topic) where.topic = topic as Topic;
-
-//   //作者名稱(不分大小寫 + 模糊篩選)
-//   if (author) {
-//     where.author = {
-//       name: {
-//         contains: author.toString(),
-//         mode: 'insensitive', //不區分大小寫搜尋
-//       }
-//     };
-//   }
-
-//   //計算分頁
-//   // const skip = (parseInt(page.toString()) - 1) * parseInt(pageSize.toString());
-//   const skip = (pageNum - 1) * sizeNum;
-
-//   //找出特定條件的文章資訊&數量
-//   const [posts, total] = await Promise.all([
-//     prisma.post.findMany({
-//       where,
-//       include: {
-//         author: true,
-//       },
-//       skip,
-//       // take: parseInt(pageSize.toString()),
-//       take: sizeNum,
-//       orderBy: { updatedAt: 'desc' }, //時間排序由新到舊
-//     }),
-//     prisma.post.count({ where }),
-//   ]);
-
-//   // ctx.body = {
-//   //   posts,
-//   //   total,
-//   //   page: parseInt(page.toString()),
-//   //   pageSize: parseInt(pageSize.toString()),
-//   // };
-//   ctx.body = {
-//     success: true,
-//     data: {
-//       posts,
-//       total,
-//       page: pageNum,
-//       pageSize: sizeNum,
-//     },
-//     message: '取得文章列表成功',
-//   };
-// };
-
-
-
 
 // 取得單篇文章
 export async function getPostById(ctx: Context) {
@@ -246,7 +160,7 @@ export async function deletePost(ctx: Context) {
     ctx.body = errorResponse('找不到該文章');
     return;
   }
-  if (!post.author || post.author.name.trim().toLowerCase() !== authorName) {
+  if (!post.author || post.author.name !== authorName) {
     ctx.status = 403;
     ctx.body = errorResponse('作者名稱不符，無法刪除文章');
     return;

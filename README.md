@@ -104,14 +104,14 @@ model Comment {
 
 | 方法     | 路徑                          | 說明                   |
 |----------|-------------------------------|------------------------|
-| GET      | `/api/posts`                  | 取得文章列表（含分頁）   |
+| GET      | `/api/posts`                  | 取得文章列表            |
 | GET      | `/api/posts/:id`              | 取得單篇文章            |
 | POST     | `/api/posts`                  | 新增文章               |
 | PUT      | `/api/posts/:id`              | 編輯文章               |
 | POST     | `/api/posts/:id/delete`       | 刪除文章               |
 | GET      | `/api/posts/:id/comments`     | 取得指定文章的留言列表   |
 | POST     | `/api/posts/:id/comments`     | 新增留言               |
-| DELETE   | `/api/comments/:id`           | 刪除留言（含簡易驗證）  |
+| POST     | `/api/comments/:id/delete`    | 刪除留言               |
 
 ---
 
