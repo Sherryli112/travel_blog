@@ -8,7 +8,7 @@ const prisma_1 = __importDefault(require("../utils/prisma"));
 const response_1 = require("../utils/response");
 async function deleteComment(ctx) {
     const id = Number(ctx.params.id);
-    const commenterName = ctx.query.commenterName;
+    const { commenterName } = ctx.request.body;
     if (isNaN(id)) {
         ctx.status = 400;
         ctx.body = (0, response_1.errorResponse)('ID 必須是數字');
@@ -34,6 +34,6 @@ async function deleteComment(ctx) {
         return;
     }
     await prisma_1.default.comment.delete({ where: { id } });
-    ctx.body = (0, response_1.successResponse)({ id }, '留言已刪除');
+    ctx.body = (0, response_1.successResponse)({ id }, '留言已成功刪除');
 }
 //# sourceMappingURL=commentController.js.map

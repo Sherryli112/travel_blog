@@ -6,25 +6,20 @@ import { successResponse, errorResponse } from '../utils/response';
 // 取得文章列表
 export const getPosts = async (ctx: Context) => {
   const { topic, author, page = '1', pageSize = '10' } = ctx.query;
-
   const pageNum = parseInt(page.toString());
   const sizeNum = parseInt(pageSize.toString());
-
   if (isNaN(pageNum) || pageNum < 1 || isNaN(sizeNum) || sizeNum < 1) {
     ctx.status = 400;
     ctx.body = errorResponse('page 與 pageSize 需為大於 0 的整數');
     return;
   }
-
   if (topic && !Object.values(Topic).includes(topic as Topic)) {
     ctx.status = 400;
     ctx.body = errorResponse('topic 格式錯誤，請確認是否為有效值');
     return;
   }
-
   const where: Prisma.PostWhereInput = {};
   if (topic) where.topic = topic as Topic;
-
   if (author) {
     where.author = {
       name: {
@@ -33,9 +28,7 @@ export const getPosts = async (ctx: Context) => {
       },
     };
   }
-
   const skip = (pageNum - 1) * sizeNum;
-
   const [posts, total] = await Promise.all([
     prisma.post.findMany({
       where,
@@ -46,7 +39,6 @@ export const getPosts = async (ctx: Context) => {
     }),
     prisma.post.count({ where }),
   ]);
-
   ctx.body = successResponse({
     posts,
     total,

@@ -4,7 +4,7 @@ import type { Metadata } from "next";
 //引入 Google Fonts 中的 Inter 字型
 import { Inter, Noto_Sans_TC } from "next/font/google";
 import "./globals.css";
-import Header from "./components/Header";
+import Navbar from "./components/Navbar";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -33,7 +33,7 @@ export default function RootLayout({
   return (
     <html lang="zh-TW">
       <body className={`${inter.variable} ${notoSansTC.variable} font-sans`}>
-        <Header></Header>
+        <Navbar></Navbar>
         <main className="min-h-screen bg-gray-50">
           {children}
         </main>

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-export default function Header() {
+export default function Navbar() {
     const pathname = usePathname(); // 取得目前的路徑
     const isOnNewPostPage = pathname === "/post/new"; // 判斷是不是在新增文章頁面
     return (

@@ -17,13 +17,13 @@ const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || [
   'http://localhost:4000'
 ];
 
-// 接收 ctx.request.body 取得 POST、PUT 請求中送來的資料
-app.use(bodyParser());
+
 
 // 設定 cors 中間件
 app.use(cors({
   origin: (ctx) => {
-    // ctx.request.header.origin 可能是 undefined，先用 ? 安全存取
+    // 獲取瀏覽器發送的 origin (誰發送的請求、哪個網址)
+    // 如果 ctx.request.header.origin 是 undefined 或 null，則回傳空字串
     const requestOrigin = ctx.request.header.origin ?? '';
 
     if (allowedOrigins.includes(requestOrigin)) {
@@ -36,6 +36,8 @@ app.use(cors({
   credentials: true, // 是否允許攜帶 cookies 或授權資訊
 }));
 
+// 接收 ctx.request.body 取得 POST、PUT 請求中送來的資料
+app.use(bodyParser());
 
 //由中介一併處理錯誤
 app.use(errorHandler);

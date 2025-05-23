@@ -137,7 +137,7 @@ async function deletePost(ctx) {
         ctx.body = (0, response_1.errorResponse)('找不到該文章');
         return;
     }
-    if (!post.author || post.author.name.trim().toLowerCase() !== authorName) {
+    if (!post.author || post.author.name !== authorName) {
         ctx.status = 403;
         ctx.body = (0, response_1.errorResponse)('作者名稱不符，無法刪除文章');
         return;

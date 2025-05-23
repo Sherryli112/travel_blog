@@ -39,6 +39,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const koa_router_1 = __importDefault(require("koa-router"));
 const commentController = __importStar(require("../controllers/commentController"));
 const router = new koa_router_1.default({ prefix: '/api/comments' });
-router.delete('/:id', commentController.deleteComment);
+router.post('/:id/delete', commentController.deleteComment);
 exports.default = router;
 //# sourceMappingURL=comments.js.map
