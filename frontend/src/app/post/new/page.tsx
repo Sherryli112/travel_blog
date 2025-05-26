@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import 'react-quill/dist/quill.snow.css';
+import { getCategoryValue, getAvailableCategoryLabels } from '@/app/utils/constants';
+
 
 // 動態導入 ReactQuill 以避免 SSR 問題
 const ReactQuill = dynamic(() => import('react-quill'), {
@@ -118,19 +120,16 @@ export default function NewPost() {
     }
 
     try {
-      // 將中文分類轉換為後端定義的 Topic 枚舉
-      const topicMap: Record<string, 'FOOD' | 'STAY' | 'SPOT' | 'OTHERS'> = {
-        '美食': 'FOOD',
-        '住宿': 'STAY',
-        '景點': 'SPOT',
-        '其他': 'OTHERS'
-      };
+      const topicValue = getCategoryValue(formData.category);
+      if (!topicValue) {
+        throw new Error('無效的文章分類');
+      }
 
       // 準備要發送的數據
       const postData = {
         title: formData.title,
         content: formData.content,
-        topic: topicMap[formData.category],
+        topic: topicValue,
         authorName: formData.author,
       };
 
@@ -185,10 +184,11 @@ export default function NewPost() {
                   }`}
               >
                 <option value="">請選擇主題</option>
-                <option value="美食">美食</option>
-                <option value="住宿">住宿</option>
-                <option value="景點">景點</option>
-                <option value="其他">其他</option>
+                {getAvailableCategoryLabels().map((label) => (
+                  <option key={label} value={label}>
+                    {label}
+                  </option>
+                ))}
               </select>
               {errors.category && (
                 <p className="mt-1 text-sm text-red-500">{errors.category}</p>

@@ -5,17 +5,8 @@ import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { PencilSquareIcon } from '@heroicons/react/24/outline';
 import { TrashIcon } from '@heroicons/react/24/outline';
-import { categoryOptions, getCategoryLabel } from '@/app/utils/constants';
+import { getCategoryLabel } from '@/app/utils/constants';
 import dayjs from '@/app/utils/dayjs';
-
-//分類類型
-// const categoryOptions = [
-//   { label: '全部', value: '' },
-//   { label: '美食', value: 'FOOD' },
-//   { label: '住宿', value: 'STAY' },
-//   { label: '景點', value: 'SPOT' },
-//   { label: '其他', value: 'OTHERS' },
-// ] as const;
 
 //作者類型
 type Author = {
@@ -49,11 +40,6 @@ type Post = {
   comments: Comment[];
 };
 
-//分類類型對應
-// const getCategoryLabel = (value: Post['topic']) => {
-//   const category = categoryOptions.find(c => c.value === value);
-//   return category ? category.label : value;
-// };
 
 const formatDate = (isoString: string): string => dayjs(isoString).tz('Asia/Taipei').format('YYYY-MM-DD');
 

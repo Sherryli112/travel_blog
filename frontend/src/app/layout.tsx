@@ -25,11 +25,7 @@ export const metadata: Metadata = {
   description: "旅遊部落格系統",
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export default function RootLayout({children}: {children: React.ReactNode}) {
   return (
     <html lang="zh-TW">
       <body className={`${inter.variable} ${notoSansTC.variable} font-sans`}>

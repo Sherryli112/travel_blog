@@ -3,15 +3,7 @@
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import dayjs from '@/app/utils/dayjs';
-
-//分類類型
-const categoryOptions = [
-  { label: '全部', value: '' },
-  { label: '美食', value: 'FOOD' },
-  { label: '住宿', value: 'STAY' },
-  { label: '景點', value: 'SPOT' },
-  { label: '其他', value: 'OTHERS' },
-];
+import { categoryOptions, getCategoryLabel } from '@/app/utils/constants';
 
 //文章類型
 type Post = {
@@ -191,7 +183,7 @@ export default function Home() {
                   <div className="flex items-center gap-2 mb-2">
                     <span className="text-gray-800 text-sm font-medium mr-2">{posts.author.name}</span>
                     <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
-                      {categoryOptions.find(option => option.value === posts.topic)?.label ?? posts.topic}
+                      {getCategoryLabel(posts.topic)}
                     </span>
                   </div>
                   {/* 標題 */}

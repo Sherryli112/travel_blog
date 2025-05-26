@@ -7,7 +7,21 @@ export const categoryOptions = [
     { label: '其他', value: 'OTHERS' },
 ] as const;
 
+//參數 value 只能是 categoryOptions 裡面的每一個項目內的 value 值
 export const getCategoryLabel = (value: (typeof categoryOptions)[number]['value']) => {
     const found = categoryOptions.find(option => option.value === value);
     return found ? found.label : value;
+};
+
+//將中文標籤轉換為英文值
+export const getCategoryValue = (label: string) => {
+    const found = categoryOptions.find(option => option.label === label);
+    return found ? found.value : null;
+};
+
+//獲取所有可用的中文標籤（排除"全部"選項）
+export const getAvailableCategoryLabels = () => {
+    return categoryOptions
+        .filter(option => option.value !== '')
+        .map(option => option.label);
 };
