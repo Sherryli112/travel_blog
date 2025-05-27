@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import 'react-quill/dist/quill.snow.css';
-import { getCategoryValue, getAvailableCategoryLabels } from '@/app/utils/constants';
+import { getCategoryValue, getAvailableCategoryLabels, ArticleCategory } from '@/app/utils/constants';
 
 
 // 動態導入 ReactQuill 以避免 SSR 問題
@@ -15,10 +15,17 @@ const ReactQuill = dynamic(() => import('react-quill'), {
 });
 
 type FormData = {
-  category: string;
+  category: ArticleCategory | '';
   author: string;
   title: string;
   content: string;
+};
+
+type FormErrors = {
+  category?: string;
+  author?: string;
+  title?: string;
+  content?: string;
 };
 
 // Quill 編輯器的工具欄配置
@@ -51,7 +58,7 @@ export default function NewPost() {
     content: '',
   });
   //存入出錯的欄位
-  const [errors, setErrors] = useState<Partial<FormData>>({});
+  const [errors, setErrors] = useState<FormErrors>({});
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -60,7 +67,7 @@ export default function NewPost() {
       [name]: value
     }));
     // 清除對應欄位的錯誤訊息
-    if (errors[name as keyof FormData]) {
+    if (errors[name as keyof FormErrors]) {
       setErrors(prev => ({
         ...prev,
         [name]: undefined
@@ -79,13 +86,10 @@ export default function NewPost() {
         content: undefined
       }));
     }
-
   };
 
-
-
   const validateForm = () => {
-    const newErrors: Partial<FormData> = {};
+    const newErrors: FormErrors = {};
     const stripHtml = (html: string) => html.replace(/<[^>]*>/g, '').trim();
 
     if (!formData.category) {
@@ -120,9 +124,12 @@ export default function NewPost() {
     }
 
     try {
-      const topicValue = getCategoryValue(formData.category);
+      if (!formData.category) {
+        throw new Error('請選擇文章主題');
+      }
+      const topicValue = getCategoryValue(formData.category as ArticleCategory);
       if (!topicValue) {
-        throw new Error('無效的文章分類');
+        throw new Error('無效的文章主題');
       }
 
       // 準備要發送的數據
@@ -256,9 +263,6 @@ export default function NewPost() {
                 <p className="mt-1 text-sm text-red-500">{errors.content}</p>
               )}
             </div>
-
-
-
 
             {/* 提交按鈕 */}
             <div className="flex justify-end space-x-4">

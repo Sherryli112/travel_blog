@@ -11,7 +11,7 @@ dotenv.config({
 
 const app = new Koa();
 
-// 允許的前端來源，可以用環境變數設定
+//允許的前端來源，3000 是開發用，4000 是部署用
 const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || [
   'http://localhost:3000',
   'http://localhost:4000'
@@ -19,30 +19,30 @@ const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || [
 
 
 
-// 設定 cors 中間件
+//設定 cors 中間件
 app.use(cors({
   origin: (ctx) => {
-    // 獲取瀏覽器發送的 origin (誰發送的請求、哪個網址)
-    // 如果 ctx.request.header.origin 是 undefined 或 null，則回傳空字串
+    //獲取瀏覽器發送的 origin (誰發送的請求、哪個網址)
+    //如果 ctx.request.header.origin 是 undefined 或 null，則回傳空字串
     const requestOrigin = ctx.request.header.origin ?? '';
 
     if (allowedOrigins.includes(requestOrigin)) {
-      return requestOrigin;  // 允許的 origin 回傳給瀏覽器
+      return requestOrigin;  //允許的 origin 回傳給瀏覽器
     }
-    return ''; // 不允許其他 origin，或可以回傳 undefined 或 null
+    return ''; //不允許其他 origin，或可以回傳 undefined 或 null
   },
-  allowMethods: ['GET', 'POST', 'PUT', 'DELETE'], // 允許的 HTTP 方法
-  allowHeaders: ['Content-Type', 'Authorization'], // 允許的 HTTP 標頭
-  credentials: true, // 是否允許攜帶 cookies 或授權資訊
+  allowMethods: ['GET', 'POST', 'PUT', 'DELETE'], //允許的 HTTP 方法
+  allowHeaders: ['Content-Type', 'Authorization'], //允許的 HTTP 標頭
+  credentials: true, //是否允許攜帶 cookies 或授權資訊
 }));
 
-// 接收 ctx.request.body 取得 POST、PUT 請求中送來的資料
+//接收 ctx.request.body 取得 POST、PUT 請求中送來的資料
 app.use(bodyParser());
 
 //由中介一併處理錯誤
 app.use(errorHandler);
 
-// 使用路由
+//比對路由，交由對應的 constroller 處理
 app.use(router.routes());
 app.use(router.allowedMethods());
 

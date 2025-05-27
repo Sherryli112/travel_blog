@@ -18,6 +18,7 @@ export const getPosts = async (ctx: Context) => {
     ctx.body = errorResponse('topic 格式錯誤，請確認是否為有效值');
     return;
   }
+  //根據 Prisma 中的 Post 模型生成的查詢條件型別
   const where: Prisma.PostWhereInput = {};
   if (topic) where.topic = topic as Topic;
   if (author) {
@@ -84,14 +85,37 @@ export async function createPost(ctx: Context) {
     ctx.body = errorResponse('缺少必要欄位');
     return;
   }
-  // 先找或建立作者
+  if (title.length < 5) {
+    ctx.status = 400;
+    ctx.body = errorResponse('標題至少需要5個字');
+    return;
+  }
+  const contentText = content.replace(/<[^>]*>/g, '').trim();
+  if (contentText.length < 20) {
+    ctx.status = 400;
+    ctx.body = errorResponse('內容至少需要20個字');
+    return;
+  }
+  if (!Object.values(Topic).includes(topic)) {
+    ctx.status = 400;
+    ctx.body = errorResponse('無效的文章主題');
+    return;
+  }
+  if (authorName.length < 2) {
+    ctx.status = 400;
+    ctx.body = errorResponse('作者名稱至少需要2個字');
+    return;
+  }
+  // 查詢資料庫是否有作者名稱，沒有的話就建立
   let author = await prisma.user.findUnique({ where: { name: authorName } });
   if (!author) {
     author = await prisma.user.create({ data: { name: authorName } });
   }
+
   const post = await prisma.post.create({
     data: { title, content, topic, authorId: author.id },
   });
+
   ctx.status = 201;
   ctx.body = successResponse(post, '文章發布成功');
 }
@@ -112,6 +136,29 @@ export async function updatePost(ctx: Context) {
     ctx.body = errorResponse('缺少必要欄位或無效 ID');
     return;
   }
+  if (title.length < 5) {
+    ctx.status = 400;
+    ctx.body = errorResponse('標題至少需要5個字');
+    return;
+  }
+  const contentText = content.replace(/<[^>]*>/g, '').trim();
+  if (contentText.length < 20) {
+    ctx.status = 400;
+    ctx.body = errorResponse('內容至少需要20個字');
+    return;
+  }
+  if (!Object.values(Topic).includes(topic)) {
+    ctx.status = 400;
+    ctx.body = errorResponse('無效的文章主題');
+    return;
+  }
+  if (authorName.length < 2) {
+    ctx.status = 400;
+    ctx.body = errorResponse('作者名稱至少需要2個字');
+    return;
+  }
+
+  // 檢查文章是否存在且作者是否相符
   const existingPost = await prisma.post.findUnique({
     where: { id },
     include: { author: true },
@@ -121,6 +168,7 @@ export async function updatePost(ctx: Context) {
     ctx.body = errorResponse('作者名稱不符，無法編輯文章');
     return;
   }
+
   const post = await prisma.post.update({
     where: { id },
     data: { title, content, topic },
