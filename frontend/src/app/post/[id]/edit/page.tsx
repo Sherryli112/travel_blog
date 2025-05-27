@@ -45,6 +45,9 @@ export default function EditPostPage() {
   });
   const [errors, setErrors] = useState<Partial<FormData>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showAuthorModal, setShowAuthorModal] = useState(false);
+  const [authorInput, setAuthorInput] = useState('');
+  const [authorError, setAuthorError] = useState('');
   const topicMap: Record<string, 'FOOD' | 'STAY' | 'SPOT' | 'OTHERS'> = {
     '美食': 'FOOD',
     '住宿': 'STAY',
@@ -117,6 +120,15 @@ export default function EditPostPage() {
     e.preventDefault();
     if (!validateForm()) return;
 
+    setShowAuthorModal(true);
+  };
+
+  const handleConfirmEdit = async () => {
+    if (authorInput !== formData.author) {
+      setAuthorError('作者名稱不正確，無法編輯文章');
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       const updatedData = {
@@ -139,15 +151,23 @@ export default function EditPostPage() {
       }
 
       alert(data.message);
-
-      router.push('/');
+      router.push(`/post/${paramsId}`);
       router.refresh();
     } catch (error) {
       console.error(error);
       alert(error instanceof Error ? error.message : '更新失敗，請稍後再試');
     } finally {
       setIsSubmitting(false);
+      setShowAuthorModal(false);
+      setAuthorInput('');
+      setAuthorError('');
     }
+  };
+
+  const handleCancelEdit = () => {
+    setShowAuthorModal(false);
+    setAuthorInput('');
+    setAuthorError('');
   };
 
   return (
@@ -266,6 +286,37 @@ export default function EditPostPage() {
           </form>
         </div>
       </div>
+
+      {/* 作者驗證彈窗 */}
+      {showAuthorModal && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50" onClick={handleCancelEdit}>
+          <div className="bg-white p-6 rounded shadow-md w-80" onClick={(e) => e.stopPropagation()}>
+            <h2 className="text-lg font-semibold text-gray-800 mb-2">編輯文章確認</h2>
+            <p className="text-sm text-gray-600 mb-2">請輸入作者名稱以確認編輯：</p>
+            <input
+              type="text"
+              value={authorInput}
+              onChange={(e) => setAuthorInput(e.target.value)}
+              className="w-full px-3 py-2 border rounded mb-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            {authorError && <p className="text-sm text-red-500 mb-2">{authorError}</p>}
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={handleCancelEdit}
+                className="text-gray-600 hover:underline px-2 py-1"
+              >
+                取消
+              </button>
+              <button
+                onClick={handleConfirmEdit}
+                className="text-blue-600 hover:underline px-2 py-1"
+              >
+                確認編輯
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
