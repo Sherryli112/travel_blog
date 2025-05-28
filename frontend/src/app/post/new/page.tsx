@@ -10,10 +10,11 @@ import { getCategoryValue, getAvailableCategoryLabels, ArticleCategory } from '@
 
 // 動態導入 ReactQuill 以避免 SSR 問題
 const ReactQuill = dynamic(() => import('react-quill'), {
-  ssr: false,
+  ssr: false, //只在瀏覽器端載入
   loading: () => <p>載入編輯器中...</p>,
 });
 
+//定義表單資料的型別
 type FormData = {
   category: ArticleCategory | '';
   author: string;
@@ -21,6 +22,7 @@ type FormData = {
   content: string;
 };
 
+//定義表單錯誤顯示欄位的型別
 type FormErrors = {
   category?: string;
   author?: string;
@@ -39,6 +41,7 @@ const modules = {
   ],
 };
 
+//使用者輸入內容允許的格式
 const formats = [
   'header',
   'bold', 'italic', 'underline', 'strike',
@@ -57,14 +60,19 @@ export default function NewPost() {
     title: '',
     content: '',
   });
-  //存入出錯的欄位
+  //出錯的欄位
   const [errors, setErrors] = useState<FormErrors>({});
+  //提交狀態(防止重複提交)
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
+  //表單輸入處理
+  //React 傳給 onChange 事件處理器的一個事件物件 e 有三種型別
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
+    //更新表單內容
     setFormData(prev => ({
       ...prev,
-      [name]: value
+      [name]: value //根據使用者輸入的欄位名稱更新對應欄位的值
     }));
     // 清除對應欄位的錯誤訊息
     if (errors[name as keyof FormErrors]) {
@@ -75,6 +83,7 @@ export default function NewPost() {
     }
   };
 
+  //編輯器內容更新
   const handleContentChange = (content: string) => {
     setFormData(prev => ({
       ...prev,
@@ -88,6 +97,7 @@ export default function NewPost() {
     }
   };
 
+  //表單驗證
   const validateForm = () => {
     const newErrors: FormErrors = {};
     const stripHtml = (html: string) => html.replace(/<[^>]*>/g, '').trim();
@@ -115,23 +125,21 @@ export default function NewPost() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  //提交表單
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     if (!validateForm()) {
       return;
     }
-
     try {
       if (!formData.category) {
         throw new Error('請選擇文章主題');
       }
+
       const topicValue = getCategoryValue(formData.category as ArticleCategory);
       if (!topicValue) {
         throw new Error('無效的文章主題');
       }
-
       // 準備要發送的數據
       const postData = {
         title: formData.title,
@@ -147,21 +155,18 @@ export default function NewPost() {
         },
         body: JSON.stringify(postData),
       });
-
       const data = await res.json();
-
+      console.log(data)
       if (!res.ok) {
         throw new Error(data.message || '發布文章失敗');
       }
-
       alert(data.message);
-
       // 發布成功後跳轉到首頁
       router.push('/');
       router.refresh();
     } catch (error) {
       console.error('發布文章時發生錯誤：', error);
-      alert(error instanceof Error ? error.message : '發布文章失敗，請稍後再試');
+      alert('發布文章失敗，請稍後再試');
     } finally {
       setIsSubmitting(false);
     }

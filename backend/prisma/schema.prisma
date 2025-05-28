@@ -1,6 +1,6 @@
 generator client {
-  provider = "prisma-client-js"
-  binaryTargets = ["native", "debian-openssl-3.0.x"]
+  provider = "prisma-client-js" //產生 Prisma Client，在程式中也可存取資料庫
+  binaryTargets = ["native", "debian-openssl-3.0.x"] //指定建構 Prisma Client 時，支援在本機可用的版本，也產出可以在部署時也能運行的版本
   output   = "../generated/prisma"
 }
 
@@ -30,15 +30,15 @@ model User {
 model Post {
   id        Int       @id @default(autoincrement())
   title     String
-  content   String    @db.Text
+  content   String    @db.Text //填入適合存在資料庫的 TEXT 類型(長內容)，而非預設的 VARCHAR(191)
   topic     Topic     @default(OTHERS)
-  author    User      @relation(fields: [authorId], references: [id]) //關聯使用者
+  author    User      @relation(fields: [authorId], references: [id]) //定義外鍵關聯，使用該模型內的 authorId，參照 User 模型的 id 欄位
   authorId  Int
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   comments  Comment[] //與評論的一對多關聯
 
-  @@index([topic]) //幫 topic 建立一個索引表，文章的 ID 會被存進去
+  @@index([topic]) //在資料庫中幫 topic 建立一個索引表，文章的 ID 會被存進去，加快查詢速度
   @@index([authorId])
 }
 
@@ -49,7 +49,7 @@ model Comment {
   commenter   User     @relation(fields: [commenterId], references: [id]) //關聯使用者
   commenterId Int
   createdAt   DateTime @default(now())
-  post        Post     @relation(fields: [postId], references: [id], onDelete: Cascade) //關聯文章
+  post        Post     @relation(fields: [postId], references: [id], onDelete: Cascade) //當關聯的文章被刪除時，此筆評論也會被跟著刪除
   postId      Int
 
   @@index([postId])

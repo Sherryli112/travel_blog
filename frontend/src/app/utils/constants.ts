@@ -24,6 +24,6 @@ export const getCategoryValue = (label: ArticleCategory) => {
 //獲取所有可用的中文標籤（排除全部選項）
 export const getAvailableCategoryLabels = () => {
   return categoryOptions
-      .filter(option => option.value !== '')
-      .map(option => option.label);
+    .filter(option => option.value !== '')
+    .map(option => option.label);
 };
