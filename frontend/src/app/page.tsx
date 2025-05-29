@@ -191,9 +191,6 @@ export default function Home() {
                     {posts.title}
                   </h2>
                   {/* 摘要 */}
-                  {/* <p className="text-gray-600 text-base mb-3 line-clamp-2">
-                    {posts.content.replace(/<[^>]+>/g, '')}
-                  </p> */}
                   <p className="text-gray-600 text-base mb-3 line-clamp-2" dangerouslySetInnerHTML={{ __html: posts.content }}>      
                   </p>
                   {/* 日期 */}

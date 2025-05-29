@@ -82,6 +82,27 @@ async function createPost(ctx) {
         ctx.body = (0, response_1.errorResponse)('缺少必要欄位');
         return;
     }
+    if (title.length < 5) {
+        ctx.status = 400;
+        ctx.body = (0, response_1.errorResponse)('標題至少需要5個字');
+        return;
+    }
+    const contentText = content.replace(/<[^>]*>/g, '').trim();
+    if (contentText.length < 20) {
+        ctx.status = 400;
+        ctx.body = (0, response_1.errorResponse)('內容至少需要20個字');
+        return;
+    }
+    if (!Object.values(prisma_2.Topic).includes(topic)) {
+        ctx.status = 400;
+        ctx.body = (0, response_1.errorResponse)('無效的文章主題');
+        return;
+    }
+    if (authorName.length < 2) {
+        ctx.status = 400;
+        ctx.body = (0, response_1.errorResponse)('作者名稱至少需要2個字');
+        return;
+    }
     let author = await prisma_1.default.user.findUnique({ where: { name: authorName } });
     if (!author) {
         author = await prisma_1.default.user.create({ data: { name: authorName } });
@@ -98,6 +119,27 @@ async function updatePost(ctx) {
     if (isNaN(id) || !title || !content || !topic || !authorName) {
         ctx.status = 400;
         ctx.body = (0, response_1.errorResponse)('缺少必要欄位或無效 ID');
+        return;
+    }
+    if (title.length < 5) {
+        ctx.status = 400;
+        ctx.body = (0, response_1.errorResponse)('標題至少需要5個字');
+        return;
+    }
+    const contentText = content.replace(/<[^>]*>/g, '').trim();
+    if (contentText.length < 20) {
+        ctx.status = 400;
+        ctx.body = (0, response_1.errorResponse)('內容至少需要20個字');
+        return;
+    }
+    if (!Object.values(prisma_2.Topic).includes(topic)) {
+        ctx.status = 400;
+        ctx.body = (0, response_1.errorResponse)('無效的文章主題');
+        return;
+    }
+    if (authorName.length < 2) {
+        ctx.status = 400;
+        ctx.body = (0, response_1.errorResponse)('作者名稱至少需要2個字');
         return;
     }
     const existingPost = await prisma_1.default.post.findUnique({

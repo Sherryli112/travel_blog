@@ -18,7 +18,6 @@ const allowedOrigins = ((_a = process.env.ALLOWED_ORIGINS) === null || _a === vo
     'http://localhost:3000',
     'http://localhost:4000'
 ];
-app.use((0, koa_bodyparser_1.default)());
 app.use((0, cors_1.default)({
     origin: (ctx) => {
         var _a;
@@ -32,6 +31,7 @@ app.use((0, cors_1.default)({
     allowHeaders: ['Content-Type', 'Authorization'],
     credentials: true,
 }));
+app.use((0, koa_bodyparser_1.default)());
 app.use(errorHandler_1.errorHandler);
 app.use(routes_1.default.routes());
 app.use(routes_1.default.allowedMethods());

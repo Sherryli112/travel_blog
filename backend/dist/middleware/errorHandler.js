@@ -8,7 +8,7 @@ const errorHandler = async (ctx, next) => {
     }
     catch (err) {
         console.error('後端錯誤：', err);
-        ctx.status = err.status || 500;
+        ctx.status = err.status;
         ctx.body = (0, response_1.errorResponse)('伺服器錯誤');
     }
 };
